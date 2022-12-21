@@ -28,11 +28,11 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     event Withdraw(address indexed sender, uint256 size, uint256 liquidity, address indexed to);
 
-    event AccrueInterest(uint256 timeElapsed, uint256 collateral, uint256 liquidity, uint256 rewardPerLiquidity);
+    event AccrueInterest(uint256 timeElapsed, uint256 collateral, uint256 liquidity, uint256 rewardPerPosition);
 
-    event AccruePositionInterest(address indexed owner, uint256 rewardPerLiquidity);
+    event AccruePositionInterest(address indexed owner, uint256 rewardPerPosition);
 
-    event Collect(address indexed owner, address indexed to, uint256 amountBase);
+    event Collect(address indexed owner, address indexed to, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
