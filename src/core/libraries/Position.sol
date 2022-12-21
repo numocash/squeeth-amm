@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.4;
 
-import { LiquidityMath } from "./LiquidityMath.sol";
+import { PositionMath } from "./PositionMath.sol";
 import { FullMath } from "./FullMath.sol";
 
 /// @notice Library for handling Lendgine liquidity positions
@@ -12,7 +12,7 @@ library Position {
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
 
-    error NoLiquidityError();
+    error NoPositionError();
 
     /*//////////////////////////////////////////////////////////////
                             POSITION STRUCT
@@ -20,12 +20,12 @@ library Position {
 
     /**
      * @param size The size of the position
-     * @param rewardPerLiquidityPaid The reward per unit of liquidity as of the last update to liquidity or tokensOwed
+     * @param rewardPerPositionPaid The reward per unit of size as of the last update to position or tokensOwed
      * @param tokensOwed The fees owed to the position owner in `speculative` tokens
      */
     struct Info {
         uint256 size;
-        uint256 rewardPerLiquidityPaid;
+        uint256 rewardPerPositionPaid;
         uint256 tokensOwed;
     }
 
@@ -38,33 +38,33 @@ library Position {
     function update(
         mapping(address => Position.Info) storage self,
         address owner,
-        int256 liquidityDelta,
-        uint256 rewardPerLiquidity
+        int256 sizeDelta,
+        uint256 rewardPerPosition
     ) internal {
         Position.Info storage positionInfo = self[owner];
         Position.Info memory _positionInfo = positionInfo;
 
         uint256 tokensOwed;
         if (_positionInfo.size > 0) {
-            tokensOwed = newTokensOwed(_positionInfo, rewardPerLiquidity);
+            tokensOwed = newTokensOwed(_positionInfo, rewardPerPosition);
         }
 
-        uint256 liquidityNext;
-        if (liquidityDelta == 0) {
-            if (_positionInfo.size == 0) revert NoLiquidityError();
-            liquidityNext = _positionInfo.size;
+        uint256 sizeNext;
+        if (sizeDelta == 0) {
+            if (_positionInfo.size == 0) revert NoPositionError();
+            sizeNext = _positionInfo.size;
         } else {
-            liquidityNext = LiquidityMath.addDelta(_positionInfo.size, liquidityDelta);
+            sizeNext = PositionMath.addDelta(_positionInfo.size, sizeDelta);
         }
 
-        if (liquidityDelta != 0) positionInfo.size = liquidityNext;
-        positionInfo.rewardPerLiquidityPaid = rewardPerLiquidity;
+        if (sizeDelta != 0) positionInfo.size = sizeNext;
+        positionInfo.rewardPerPositionPaid = rewardPerPosition;
         if (tokensOwed > 0) positionInfo.tokensOwed = _positionInfo.tokensOwed + tokensOwed;
     }
 
     /// @notice Helper function for determining the amount of tokens owed to a position
-    function newTokensOwed(Position.Info memory position, uint256 rewardPerLiquidity) internal pure returns (uint256) {
-        return FullMath.mulDiv(position.size, rewardPerLiquidity - position.rewardPerLiquidityPaid, 1 ether);
+    function newTokensOwed(Position.Info memory position, uint256 rewardPerPosition) internal pure returns (uint256) {
+        return FullMath.mulDiv(position.size, rewardPerPosition - position.rewardPerPositionPaid, 1 ether);
     }
 
     function convertLiquidityToPosition(
@@ -72,7 +72,7 @@ library Position {
         uint256 totalLiquidity,
         uint256 totalLiquiditySupplied
     ) internal pure returns (uint256) {
-        return FullMath.mulDiv(liquidity, totalLiquiditySupplied, totalLiquidity);
+        return totalLiquidity == 0 ? liquidity : FullMath.mulDiv(liquidity, totalLiquiditySupplied, totalLiquidity);
     }
 
     function convertPositionToLiquidity(

@@ -1,28 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity ^0.8.4;
+pragma solidity >=0.8.0;
 
 /// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
 /// @author Kyle Scott (https://github.com/numoen/core/blob/master/src/ERC20.sol)
-/// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
+/// @author Modified from Solmate v6 (https://github.com/transmissions11/solmate/blob/main/src/tokens/ERC20.sol)
 /// and Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
 /// @dev Do not manually set balances without updating totalSupply, as the sum of all user balances must not exceed it.
 abstract contract ERC20 {
-    /*//////////////////////////////////////////////////////////////
-                                 EVENTS
+    /*///////////////////////////////////////////////////////////////
+                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
     event Approval(address indexed owner, address indexed spender, uint256 amount);
 
-    /*//////////////////////////////////////////////////////////////
-                                 ERRORS
-    //////////////////////////////////////////////////////////////*/
-
-    error ZeroAddressError();
-
-    /*//////////////////////////////////////////////////////////////
-                            METADATA STORAGE
+    /*///////////////////////////////////////////////////////////////
+                             METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
 
     string public constant name = "Numoen Replicating Derivative";
@@ -31,7 +25,7 @@ abstract contract ERC20 {
 
     uint8 public constant decimals = 18;
 
-    /*//////////////////////////////////////////////////////////////
+    /*///////////////////////////////////////////////////////////////
                               ERC20 STORAGE
     //////////////////////////////////////////////////////////////*/
 
@@ -41,9 +35,12 @@ abstract contract ERC20 {
 
     mapping(address => mapping(address => uint256)) public allowance;
 
-    /*//////////////////////////////////////////////////////////////
-                            EIP-2612 STORAGE
+    /*///////////////////////////////////////////////////////////////
+                             EIP-2612 STORAGE
     //////////////////////////////////////////////////////////////*/
+
+    bytes32 public constant PERMIT_TYPEHASH =
+        keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
     uint256 internal immutable INITIAL_CHAIN_ID;
 
@@ -51,7 +48,7 @@ abstract contract ERC20 {
 
     mapping(address => uint256) public nonces;
 
-    /*//////////////////////////////////////////////////////////////
+    /*///////////////////////////////////////////////////////////////
                                CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
@@ -60,12 +57,12 @@ abstract contract ERC20 {
         INITIAL_DOMAIN_SEPARATOR = computeDomainSeparator();
     }
 
-    /*//////////////////////////////////////////////////////////////
-                               ERC20 LOGIC
+    /*///////////////////////////////////////////////////////////////
+                              ERC20 LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    /// @dev changed visibility to external
     function approve(address spender, uint256 amount) external virtual returns (bool) {
-        if (spender == address(0)) revert ZeroAddressError();
         allowance[msg.sender][spender] = amount;
 
         emit Approval(msg.sender, spender, amount);
@@ -73,8 +70,8 @@ abstract contract ERC20 {
         return true;
     }
 
+    /// @dev changed visibility to external
     function transfer(address to, uint256 amount) external virtual returns (bool) {
-        if (to == address(0)) revert ZeroAddressError();
         balanceOf[msg.sender] -= amount;
 
         // Cannot overflow because the sum of all user
@@ -88,12 +85,12 @@ abstract contract ERC20 {
         return true;
     }
 
+    /// @dev changed visibility to external
     function transferFrom(
         address from,
         address to,
         uint256 amount
     ) external virtual returns (bool) {
-        if (from == address(0) || to == address(0)) revert ZeroAddressError();
         uint256 allowed = allowance[from][msg.sender]; // Saves gas for limited approvals.
 
         if (allowed != type(uint256).max) allowance[from][msg.sender] = allowed - amount;
@@ -111,8 +108,8 @@ abstract contract ERC20 {
         return true;
     }
 
-    /*//////////////////////////////////////////////////////////////
-                             EIP-2612 LOGIC
+    /*///////////////////////////////////////////////////////////////
+                              EIP-2612 LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function permit(
@@ -124,36 +121,20 @@ abstract contract ERC20 {
         bytes32 r,
         bytes32 s
     ) external virtual {
-        if (owner == address(0) || spender == address(0)) revert ZeroAddressError();
-
         require(deadline >= block.timestamp, "PERMIT_DEADLINE_EXPIRED");
 
         // Unchecked because the only math done is incrementing
         // the owner's nonce which cannot realistically overflow.
         unchecked {
-            address recoveredAddress = ecrecover(
-                keccak256(
-                    abi.encodePacked(
-                        "\x19\x01",
-                        DOMAIN_SEPARATOR(),
-                        keccak256(
-                            abi.encode(
-                                keccak256(
-                                    "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
-                                ),
-                                owner,
-                                spender,
-                                value,
-                                nonces[owner]++,
-                                deadline
-                            )
-                        )
-                    )
-                ),
-                v,
-                r,
-                s
+            bytes32 digest = keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    DOMAIN_SEPARATOR(),
+                    keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+                )
             );
+
+            address recoveredAddress = ecrecover(digest, v, r, s);
 
             require(recoveredAddress != address(0) && recoveredAddress == owner, "INVALID_SIGNER");
 
@@ -180,12 +161,11 @@ abstract contract ERC20 {
             );
     }
 
-    /*//////////////////////////////////////////////////////////////
-                        INTERNAL MINT/BURN LOGIC
+    /*///////////////////////////////////////////////////////////////
+                       INTERNAL MINT/BURN LOGIC
     //////////////////////////////////////////////////////////////*/
 
     function _mint(address to, uint256 amount) internal virtual {
-        if (to == address(0)) revert ZeroAddressError();
         totalSupply += amount;
 
         // Cannot overflow because the sum of all user
@@ -198,7 +178,6 @@ abstract contract ERC20 {
     }
 
     function _burn(address from, uint256 amount) internal virtual {
-        if (from == address(0)) revert ZeroAddressError();
         balanceOf[from] -= amount;
 
         // Cannot underflow because a user's balance

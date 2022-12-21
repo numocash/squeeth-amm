@@ -35,9 +35,9 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
                                  STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    uint128 public reserve0;
+    uint120 public reserve0;
 
-    uint128 public reserve1;
+    uint120 public reserve1;
 
     uint256 public totalLiquidity;
 
@@ -62,7 +62,7 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
         uint256 c = FullMath.mulDiv(scale1, scale1, 1 ether) / 4;
         uint256 d = FullMath.mulDiv(upperBound, upperBound, 1 ether);
 
-        return a + b >= c + d; // TODO: are there concerns with the invariant rounding down
+        return a + b >= c + d; // TODO: are there concerns with the c or d rounding down
     }
 
     function mint(uint256 liquidity, bytes calldata data) internal {
@@ -74,16 +74,16 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
 
         if (!invariant(reserve0 + amount0In, reserve1 + amount1In, totalLiquidity + liquidity)) revert InvariantError();
 
-        reserve0 += SafeCast.toUint128(amount0In);
-        reserve1 += SafeCast.toUint128(amount1In);
+        reserve0 += SafeCast.toUint120(amount0In);
+        reserve1 += SafeCast.toUint120(amount1In);
         totalLiquidity += liquidity;
 
         emit Mint(amount0In, amount1In, liquidity);
     }
 
     function burn(address to, uint256 liquidity) internal {
-        uint128 _reserve0 = reserve0; // SLOAD
-        uint128 _reserve1 = reserve1; // SLOAD
+        uint120 _reserve0 = reserve0; // SLOAD
+        uint120 _reserve1 = reserve1; // SLOAD
         uint256 _totalLiquidity = totalLiquidity; // SLOAD
 
         uint256 amount0 = FullMath.mulDiv(_reserve0, liquidity, _totalLiquidity);
@@ -95,8 +95,8 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
 
         if (!invariant(_reserve0 - amount0, _reserve1 - amount1, _totalLiquidity - liquidity)) revert InvariantError();
 
-        reserve0 -= SafeCast.toUint128(amount0);
-        reserve1 -= SafeCast.toUint128(amount1);
+        reserve0 -= SafeCast.toUint120(amount0);
+        reserve1 -= SafeCast.toUint120(amount1);
         totalLiquidity -= liquidity;
 
         emit Burn(amount0, amount1, liquidity, to);
@@ -110,8 +110,8 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
     ) external nonReentrant {
         if (amount0Out == 0 && amount1Out == 0) revert InsufficientOutputError();
 
-        uint128 _reserve0 = reserve0; // SLOAD
-        uint128 _reserve1 = reserve1; // SLOAD
+        uint120 _reserve0 = reserve0; // SLOAD
+        uint120 _reserve1 = reserve1; // SLOAD
 
         if (amount0Out > 0) SafeTransferLib.safeTransfer(token0, to, amount0Out);
         if (amount1Out > 0) SafeTransferLib.safeTransfer(token1, to, amount1Out);
@@ -125,8 +125,8 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
         if (!invariant(_reserve0 + amount0In - amount0Out, _reserve1 + amount1In - amount1Out, totalLiquidity))
             revert InvariantError();
 
-        reserve0 = _reserve0 + SafeCast.toUint128(amount0In) - SafeCast.toUint128(amount0Out);
-        reserve1 = _reserve1 + SafeCast.toUint128(amount1In) - SafeCast.toUint128(amount1Out);
+        reserve0 = _reserve0 + SafeCast.toUint120(amount0In) - SafeCast.toUint120(amount0Out);
+        reserve1 = _reserve1 + SafeCast.toUint120(amount1In) - SafeCast.toUint120(amount1Out);
 
         emit Swap(amount0Out, amount1Out, amount0In, amount1In, to);
     }

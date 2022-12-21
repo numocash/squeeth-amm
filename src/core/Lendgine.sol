@@ -20,15 +20,15 @@ contract Lendgine is ERC20, JumpRate, Pair {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event Mint(address indexed sender, uint256 amountS, uint256 shares, uint256 liquidity, address indexed to);
+    event Mint(address indexed sender, uint256 collateral, uint256 shares, uint256 liquidity, address indexed to);
 
-    event Burn(address indexed sender, uint256 amountS, uint256 shares, uint256 liquidity, address indexed to);
+    event Burn(address indexed sender, uint256 collateral, uint256 shares, uint256 liquidity, address indexed to);
 
     event Deposit(address indexed sender, uint256 liquidity, address indexed to);
 
     event Withdraw(address indexed sender, uint256 liquidity, address indexed to);
 
-    event AccrueInterest(uint256 timeElapsed, uint256 amountS, uint256 liquidity, uint256 rewardPerLiquidity);
+    event AccrueInterest(uint256 timeElapsed, uint256 collateral, uint256 liquidity, uint256 rewardPerLiquidity);
 
     event AccruePositionInterest(address indexed owner, uint256 rewardPerLiquidity);
 
@@ -52,13 +52,14 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     mapping(address => Position.Info) public positions;
 
+    uint256 public totalPositionSize;
+
     uint256 public totalLiquidityBorrowed;
 
-    uint256 public totalLiquiditySupplied;
+    uint256 public rewardPerPositionStored;
 
-    uint256 public rewardPerLiquidityStored;
-
-    uint64 public lastUpdate;
+    /// @dev don't downsize because it takes up the last slot
+    uint256 public lastUpdate;
 
     function mint(
         address to,
@@ -112,48 +113,49 @@ contract Lendgine is ERC20, JumpRate, Pair {
         address to,
         uint256 liquidity,
         bytes calldata data
-    ) external nonReentrant {
+    ) external nonReentrant returns (uint256 size) {
         _accrueInterest();
 
-        uint256 _totalLiquiditySupplied = totalLiquiditySupplied; // SLOAD
+        uint256 _totalLiquidity = totalLiquidity; // SLOAD
+        uint256 totalLiquiditySupplied = _totalLiquidity + totalLiquidityBorrowed;
 
         // validate inputs
         if (liquidity == 0) revert InputError();
 
         // calculate position
-        uint256 position = Position.convertLiquidityToPosition(liquidity, totalLiquidity, _totalLiquiditySupplied);
+        size = Position.convertLiquidityToPosition(liquidity, _totalLiquidity, totalLiquiditySupplied);
 
         // update state
-        positions.update(to, int256(position), rewardPerLiquidityStored);
-        totalLiquiditySupplied = _totalLiquiditySupplied + liquidity;
+        positions.update(to, int256(size), rewardPerPositionStored); // TODO: are we safe to cast this
+        totalPositionSize += size;
         mint(liquidity, data);
 
         emit Deposit(msg.sender, liquidity, to);
     }
 
-    function withdraw(address to, uint256 position) external nonReentrant {
+    function withdraw(address to, uint256 size) external nonReentrant returns (uint256 liquidity) {
         _accrueInterest();
 
         uint256 _totalLiquidity = totalLiquidity; // SLOAD
-        uint256 _totalLiquiditySupplied = totalLiquiditySupplied; // SLOAD
+        uint256 totalLiquiditySupplied = _totalLiquidity + totalLiquidityBorrowed;
 
         // validate inputs
-        if (position == 0) revert InputError();
+        if (size == 0) revert InputError();
 
         // read position
         Position.Info memory positionInfo = positions.get(msg.sender);
-        uint256 liquidity = Position.convertPositionToLiquidity(position, _totalLiquidity, _totalLiquiditySupplied);
+        liquidity = Position.convertPositionToLiquidity(size, _totalLiquidity, totalLiquiditySupplied);
 
         // check position
-        if (position > positionInfo.size) revert InsufficientPositionError();
+        if (size > positionInfo.size) revert InsufficientPositionError();
         if (totalLiquidityBorrowed > _totalLiquidity - liquidity) revert CompleteUtilizationError();
 
         // update state
-        positions.update(msg.sender, -int256(position), rewardPerLiquidityStored);
-        totalLiquiditySupplied = _totalLiquiditySupplied - liquidity;
+        positions.update(msg.sender, -int256(size), rewardPerPositionStored); // TODO: are we safe to cast this
+        totalPositionSize -= size;
         burn(to, liquidity);
 
-        emit Withdraw(msg.sender, liquidity, to);
+        emit Withdraw(msg.sender, liquidity, to); // TODO: update events
     }
 
     function accrueInterest() external nonReentrant {
@@ -207,7 +209,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
     /// @notice Helper function for accruing lendgine interest
     function _accrueInterest() private {
         if (totalSupply == 0 || totalLiquidityBorrowed == 0) {
-            lastUpdate = uint64(block.timestamp);
+            lastUpdate = block.timestamp;
             return;
         }
 
@@ -215,9 +217,10 @@ contract Lendgine is ERC20, JumpRate, Pair {
         if (timeElapsed == 0) return;
 
         uint256 _totalLiquidityBorrowed = totalLiquidityBorrowed; // SLOAD
-        uint256 _totalLiquiditySupplied = totalLiquiditySupplied; // SLOAD
+        uint256 totalLiquiditySupplied = totalLiquidity + _totalLiquidityBorrowed; // SLOAD
+        uint256 _rewardPerPositionStored = rewardPerPositionStored;
 
-        uint256 borrowRate = getBorrowRate(_totalLiquidityBorrowed, _totalLiquiditySupplied);
+        uint256 borrowRate = getBorrowRate(_totalLiquidityBorrowed, totalLiquiditySupplied);
 
         uint256 dilutionLPRequested = (FullMath.mulDiv(borrowRate, _totalLiquidityBorrowed, 1 ether) * timeElapsed) /
             365 days;
@@ -227,21 +230,22 @@ contract Lendgine is ERC20, JumpRate, Pair {
         uint256 dilutionSpeculative = convertLiquidityToCollateral(dilutionLP);
 
         totalLiquidityBorrowed = _totalLiquidityBorrowed - dilutionLP;
-        totalLiquiditySupplied = _totalLiquiditySupplied - dilutionLP;
-        rewardPerLiquidityStored += FullMath.mulDiv(dilutionSpeculative, 1 ether, _totalLiquiditySupplied);
-        lastUpdate = uint64(block.timestamp);
+        rewardPerPositionStored =
+            _rewardPerPositionStored +
+            FullMath.mulDiv(dilutionSpeculative, 1 ether, totalPositionSize);
+        lastUpdate = block.timestamp;
 
-        emit AccrueInterest(timeElapsed, dilutionSpeculative, dilutionLP, rewardPerLiquidityStored);
+        emit AccrueInterest(timeElapsed, dilutionSpeculative, dilutionLP, _rewardPerPositionStored);
     }
 
     /// @notice Helper function for accruing interest to a position
     /// @dev Assume the global interest is up to date
     /// @param owner The address that this position belongs to
     function _accruePositionInterest(address owner) private {
-        uint256 _rewardPerLiquidityStored = rewardPerLiquidityStored; // SLOAD
+        uint256 _rewardPerPositionStored = rewardPerPositionStored; // SLOAD
 
-        positions.update(owner, 0, _rewardPerLiquidityStored); // TODO: rewards based on
+        positions.update(owner, 0, _rewardPerPositionStored);
 
-        emit AccruePositionInterest(owner, _rewardPerLiquidityStored);
+        emit AccruePositionInterest(owner, _rewardPerPositionStored);
     }
 }
