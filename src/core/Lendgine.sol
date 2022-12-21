@@ -24,9 +24,9 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     event Burn(address indexed sender, uint256 collateral, uint256 shares, uint256 liquidity, address indexed to);
 
-    event Deposit(address indexed sender, uint256 liquidity, address indexed to);
+    event Deposit(address indexed sender, uint256 size, uint256 liquidity, address indexed to);
 
-    event Withdraw(address indexed sender, uint256 liquidity, address indexed to);
+    event Withdraw(address indexed sender, uint256 size, uint256 liquidity, address indexed to);
 
     event AccrueInterest(uint256 timeElapsed, uint256 collateral, uint256 liquidity, uint256 rewardPerLiquidity);
 
@@ -130,7 +130,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
         totalPositionSize += size;
         mint(liquidity, data);
 
-        emit Deposit(msg.sender, liquidity, to);
+        emit Deposit(msg.sender, size, liquidity, to);
     }
 
     function withdraw(address to, uint256 size) external nonReentrant returns (uint256 liquidity) {
@@ -155,7 +155,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
         totalPositionSize -= size;
         burn(to, liquidity);
 
-        emit Withdraw(msg.sender, liquidity, to); // TODO: update events
+        emit Withdraw(msg.sender, size, liquidity, to);
     }
 
     function accrueInterest() external nonReentrant {

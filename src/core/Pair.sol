@@ -66,17 +66,22 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
     }
 
     function mint(uint256 liquidity, bytes calldata data) internal {
+        uint120 _reserve0 = reserve0; // SLOAD
+        uint120 _reserve1 = reserve1; // SLOAD
+        uint256 _totalLiquidity = totalLiquidity; // SLOAD
+
         uint256 balance0Before = Balance.balance(token0);
         uint256 balance1Before = Balance.balance(token1);
         IPairMintCallback(msg.sender).mintCallback(liquidity, data);
         uint256 amount0In = Balance.balance(token0) - balance0Before;
         uint256 amount1In = Balance.balance(token1) - balance1Before;
 
-        if (!invariant(reserve0 + amount0In, reserve1 + amount1In, totalLiquidity + liquidity)) revert InvariantError();
+        if (!invariant(_reserve0 + amount0In, _reserve1 + amount1In, _totalLiquidity + liquidity))
+            revert InvariantError();
 
-        reserve0 += SafeCast.toUint120(amount0In);
-        reserve1 += SafeCast.toUint120(amount1In);
-        totalLiquidity += liquidity;
+        reserve0 = _reserve0 + SafeCast.toUint120(amount0In);
+        reserve1 = _reserve1 + SafeCast.toUint120(amount1In);
+        totalLiquidity = _totalLiquidity + liquidity;
 
         emit Mint(amount0In, amount1In, liquidity);
     }
@@ -95,9 +100,9 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
 
         if (!invariant(_reserve0 - amount0, _reserve1 - amount1, _totalLiquidity - liquidity)) revert InvariantError();
 
-        reserve0 -= SafeCast.toUint120(amount0);
-        reserve1 -= SafeCast.toUint120(amount1);
-        totalLiquidity -= liquidity;
+        reserve0 = _reserve0 - SafeCast.toUint120(amount0);
+        reserve1 = _reserve1 - SafeCast.toUint120(amount1);
+        totalLiquidity = _totalLiquidity - liquidity;
 
         emit Burn(amount0, amount1, liquidity, to);
     }
