@@ -52,7 +52,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     mapping(address => Position.Info) public positions;
 
-    uint256 public totalPositionSize;
+    uint256 public totalPositionSize; // TODO: update to uint128
 
     uint256 public totalLiquidityBorrowed;
 

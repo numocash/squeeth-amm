@@ -52,6 +52,7 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
     ) public view returns (bool) {
         if (liquidity == 0) return (amount0 == 0 && amount1 == 0); // TODO: should this always return true
 
+        // TODO: compute the scale's in this contract
         uint256 scale0 = FullMath.mulDiv(FullMath.mulDiv(amount0, 1 ether, liquidity), 1 ether, token0Scale);
         uint256 scale1 = FullMath.mulDiv(FullMath.mulDiv(amount1, 1 ether, liquidity), 1 ether, token1Scale);
 
@@ -65,6 +66,7 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
         return a + b >= c + d; // TODO: are there concerns with the c or d rounding down
     }
 
+    /// @dev assumes liquidity is non-zero
     function mint(uint256 liquidity, bytes calldata data) internal {
         uint120 _reserve0 = reserve0; // SLOAD
         uint120 _reserve1 = reserve1; // SLOAD
