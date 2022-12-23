@@ -1,0 +1,147 @@
+// SPDX-License-Identifier: GPL-3.0-only
+pragma solidity ^0.8.0;
+
+import { Lendgine } from "../src/core/Lendgine.sol";
+import { Pair } from "../src/core/Pair.sol";
+import { TestHelper } from "./utils/TestHelper.sol";
+
+contract BurnTest is TestHelper {
+    event Burn(address indexed sender, uint256 collateral, uint256 shares, uint256 liquidity, address indexed to);
+
+    event Mint(uint256 amount0In, uint256 amount1In, uint256 liquidity);
+
+    function setUp() external {
+        _setUp();
+        _deposit(address(this), address(this), 1 ether, 8 ether, 1 ether);
+        _mint(cuh, cuh, 5 ether);
+    }
+
+    function testBurnPartial() external {
+        uint256 collateral = _burn(cuh, cuh, 0.25 ether, 0.25 ether, 2 ether);
+
+        // check returned tokens
+        assertEq(2.5 ether, collateral);
+        assertEq(0.25 ether, token0.balanceOf(cuh));
+        assertEq(2 ether + 2.5 ether, token1.balanceOf(cuh));
+
+        // check lendgine token
+        assertEq(0.25 ether, lendgine.totalSupply());
+        assertEq(0.25 ether, lendgine.balanceOf(cuh));
+
+        // check storage slots
+        assertEq(0.25 ether, lendgine.totalLiquidityBorrowed());
+        assertEq(0.75 ether, lendgine.totalLiquidity());
+        assertEq(0.75 ether, uint256(lendgine.reserve0()));
+        assertEq(6 ether, uint256(lendgine.reserve1()));
+
+        // check lendgine balances
+        assertEq(0.75 ether, token0.balanceOf(address(lendgine)));
+        assertEq(2.5 ether + 6 ether, token1.balanceOf(address(lendgine)));
+    }
+
+    function testBurnFull() external {
+        uint256 collateral = _burn(cuh, cuh, 0.5 ether, 0.5 ether, 4 ether);
+
+        // check returned tokens
+        assertEq(5 ether, collateral);
+        assertEq(0 ether, token0.balanceOf(cuh));
+        assertEq(5 ether, token1.balanceOf(cuh));
+
+        // check lendgine token
+        assertEq(0 ether, lendgine.totalSupply());
+        assertEq(0 ether, lendgine.balanceOf(cuh));
+
+        // check storage slots
+        assertEq(0 ether, lendgine.totalLiquidityBorrowed());
+        assertEq(1 ether, lendgine.totalLiquidity());
+        assertEq(1 ether, uint256(lendgine.reserve0()));
+        assertEq(8 ether, uint256(lendgine.reserve1()));
+
+        // check lendgine balances
+        assertEq(1 ether, token0.balanceOf(address(lendgine)));
+        assertEq(8 ether, token1.balanceOf(address(lendgine)));
+    }
+
+    function testZeroBurn() external {
+        vm.expectRevert(Lendgine.InputError.selector);
+        lendgine.burn(cuh, bytes(""));
+    }
+
+    function testUnderPay() external {
+        vm.prank(cuh);
+        lendgine.transfer(address(lendgine), 0.5 ether);
+
+        vm.startPrank(cuh);
+        token0.approve(address(this), 0.5 ether);
+        token1.approve(address(this), 3 ether);
+        vm.stopPrank();
+
+        vm.expectRevert(Pair.InvariantError.selector);
+        lendgine.burn(
+            cuh,
+            abi.encode(
+                PairMintCallbackData({
+                    token0: address(token0),
+                    token1: address(token1),
+                    amount0: 0.5 ether,
+                    amount1: 3 ether,
+                    payer: cuh
+                })
+            )
+        );
+    }
+
+    function testEmitLendgine() external {
+        vm.prank(cuh);
+        lendgine.transfer(address(lendgine), 0.5 ether);
+
+        vm.startPrank(cuh);
+        token0.approve(address(this), 0.5 ether);
+        token1.approve(address(this), 4 ether);
+        vm.stopPrank();
+
+        vm.expectEmit(true, true, false, true, address(lendgine));
+        emit Burn(address(this), 5 ether, 0.5 ether, 0.5 ether, cuh);
+        lendgine.burn(
+            cuh,
+            abi.encode(
+                PairMintCallbackData({
+                    token0: address(token0),
+                    token1: address(token1),
+                    amount0: 0.5 ether,
+                    amount1: 4 ether,
+                    payer: cuh
+                })
+            )
+        );
+    }
+
+    function testEmitPair() external {
+        vm.prank(cuh);
+        lendgine.transfer(address(lendgine), 0.5 ether);
+
+        vm.startPrank(cuh);
+        token0.approve(address(this), 0.5 ether);
+        token1.approve(address(this), 4 ether);
+        vm.stopPrank();
+
+        vm.expectEmit(false, false, false, true, address(lendgine));
+        emit Mint(0.5 ether, 4 ether, 0.5 ether);
+        lendgine.burn(
+            cuh,
+            abi.encode(
+                PairMintCallbackData({
+                    token0: address(token0),
+                    token1: address(token1),
+                    amount0: 0.5 ether,
+                    amount1: 4 ether,
+                    payer: cuh
+                })
+            )
+        );
+    }
+
+    // function test proportional shares
+
+    // function testAccrueOnBurn
+}

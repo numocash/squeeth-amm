@@ -10,7 +10,7 @@ import { ISwapCallback } from "./interfaces/callbacks/ISwapCallback.sol";
 import { Balance } from "./libraries/Balance.sol";
 import { FullMath } from "./libraries/FullMath.sol";
 import { SafeCast } from "./libraries/SafeCast.sol";
-import { SafeTransferLib } from "./libraries/SafeTransferLib.sol";
+import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
 
 abstract contract Pair is ImmutableState, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
@@ -74,7 +74,7 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
 
         uint256 balance0Before = Balance.balance(token0);
         uint256 balance1Before = Balance.balance(token1);
-        IPairMintCallback(msg.sender).mintCallback(liquidity, data);
+        IPairMintCallback(msg.sender).pairMintCallback(liquidity, data);
         uint256 amount0In = Balance.balance(token0) - balance0Before;
         uint256 amount1In = Balance.balance(token1) - balance1Before;
 
@@ -88,6 +88,7 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
         emit Mint(amount0In, amount1In, liquidity);
     }
 
+    /// @dev assumes liquidity is non-zero
     function burn(address to, uint256 liquidity) internal {
         uint120 _reserve0 = reserve0; // SLOAD
         uint120 _reserve1 = reserve1; // SLOAD
@@ -95,11 +96,12 @@ abstract contract Pair is ImmutableState, ReentrancyGuard {
 
         uint256 amount0 = FullMath.mulDiv(_reserve0, liquidity, _totalLiquidity);
         uint256 amount1 = FullMath.mulDiv(_reserve1, liquidity, _totalLiquidity);
-        if (amount0 == 0 && amount1 == 0) revert InsufficientOutputError();
+        if (amount0 == 0 && amount1 == 0) revert InsufficientOutputError(); // TODO: can this ever be true
 
         if (amount0 > 0) SafeTransferLib.safeTransfer(token0, to, amount0);
         if (amount1 > 0) SafeTransferLib.safeTransfer(token1, to, amount1);
 
+        // Extra check of the invariant
         if (!invariant(_reserve0 - amount0, _reserve1 - amount1, _totalLiquidity - liquidity)) revert InvariantError();
 
         reserve0 = _reserve0 - SafeCast.toUint120(amount0);

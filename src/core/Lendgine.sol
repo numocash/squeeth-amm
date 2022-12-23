@@ -10,7 +10,7 @@ import { IMintCallback } from "./interfaces/callbacks/IMintCallback.sol";
 import { Balance } from "./libraries/Balance.sol";
 import { FullMath } from "./libraries/FullMath.sol";
 import { Position } from "./libraries/Position.sol";
-import { SafeTransferLib } from "./libraries/SafeTransferLib.sol";
+import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
 
 contract Lendgine is ERC20, JumpRate, Pair {
     using Position for mapping(address => Position.Info);
@@ -71,12 +71,12 @@ contract Lendgine is ERC20, JumpRate, Pair {
         uint256 liquidity = convertCollateralToLiquidity(collateral);
         shares = convertLiquidityToShare(liquidity);
 
-        if (shares == 0 || collateral == 0) revert InsufficientOutputError();
+        if (collateral == 0 || liquidity == 0 || shares == 0) revert InputError();
         if (liquidity + totalLiquidityBorrowed > totalLiquidity) revert CompleteUtilizationError();
         if (totalSupply > 0 && totalLiquidityBorrowed == 0) revert CompleteUtilizationError();
 
+        // update state
         totalLiquidityBorrowed += liquidity;
-
         burn(to, liquidity);
         _mint(to, shares);
 
@@ -97,11 +97,10 @@ contract Lendgine is ERC20, JumpRate, Pair {
         uint256 liquidity = convertShareToLiquidity(shares);
         collateral = convertLiquidityToCollateral(liquidity);
 
-        if (liquidity == 0 || collateral == 0 || shares == 0) revert InputError();
-
-        totalLiquidityBorrowed -= liquidity;
+        if (collateral == 0 || liquidity == 0 || shares == 0) revert InputError();
 
         // update state
+        totalLiquidityBorrowed -= liquidity;
         _burn(address(this), shares);
         SafeTransferLib.safeTransfer(token1, to, collateral); // optimistically transfer
         mint(liquidity, data);
@@ -119,11 +118,11 @@ contract Lendgine is ERC20, JumpRate, Pair {
         uint256 _totalLiquidity = totalLiquidity; // SLOAD
         uint256 totalLiquiditySupplied = _totalLiquidity + totalLiquidityBorrowed;
 
-        // validate inputs
-        if (liquidity == 0) revert InputError();
-
         // calculate position
         size = Position.convertLiquidityToPosition(liquidity, _totalLiquidity, totalLiquiditySupplied);
+
+        // validate inputs
+        if (liquidity == 0 || size == 0) revert InputError();
 
         // update state
         positions.update(to, int256(size), rewardPerPositionStored); // TODO: are we safe to cast this
@@ -139,12 +138,12 @@ contract Lendgine is ERC20, JumpRate, Pair {
         uint256 _totalLiquidity = totalLiquidity; // SLOAD
         uint256 totalLiquiditySupplied = _totalLiquidity + totalLiquidityBorrowed;
 
-        // validate inputs
-        if (size == 0) revert InputError();
-
         // read position
         Position.Info memory positionInfo = positions.get(msg.sender);
-        liquidity = Position.convertPositionToLiquidity(size, _totalLiquidity, totalLiquiditySupplied);
+        liquidity = Position.convertPositionToLiquidity(size, _totalLiquidity, totalLiquiditySupplied); // TODO: can liquidity ever be 0
+
+        // validate inputs
+        if (liquidity == 0 || size == 0) revert InputError();
 
         // check position
         if (size > positionInfo.size) revert InsufficientPositionError();
