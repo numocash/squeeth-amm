@@ -28,7 +28,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     event Withdraw(address indexed sender, uint256 size, uint256 liquidity, address indexed to);
 
-    event AccrueInterest(uint256 timeElapsed, uint256 collateral, uint256 liquidity, uint256 rewardPerPosition);
+    event AccrueInterest(uint256 timeElapsed, uint256 collateral, uint256 liquidity);
 
     event AccruePositionInterest(address indexed owner, uint256 rewardPerPosition);
 
@@ -52,7 +52,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     mapping(address => Position.Info) public positions;
 
-    uint256 public totalPositionSize; // TODO: update to uint128
+    uint256 public totalPositionSize; // TODO: can we remove this slot
 
     uint256 public totalLiquidityBorrowed;
 
@@ -115,18 +115,18 @@ contract Lendgine is ERC20, JumpRate, Pair {
     ) external nonReentrant returns (uint256 size) {
         _accrueInterest();
 
-        uint256 _totalLiquidity = totalLiquidity; // SLOAD
-        uint256 totalLiquiditySupplied = _totalLiquidity + totalLiquidityBorrowed;
+        uint256 _totalPositionSize = totalPositionSize; // SLOAD
+        uint256 totalLiquiditySupplied = totalLiquidity + totalLiquidityBorrowed;
 
         // calculate position
-        size = Position.convertLiquidityToPosition(liquidity, _totalLiquidity, totalLiquiditySupplied);
+        size = Position.convertLiquidityToPosition(liquidity, totalLiquiditySupplied, _totalPositionSize);
 
         // validate inputs
         if (liquidity == 0 || size == 0) revert InputError();
 
         // update state
         positions.update(to, int256(size), rewardPerPositionStored); // TODO: are we safe to cast this
-        totalPositionSize += size;
+        totalPositionSize = _totalPositionSize + size;
         mint(liquidity, data);
 
         emit Deposit(msg.sender, size, liquidity, to);
@@ -217,7 +217,6 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
         uint256 _totalLiquidityBorrowed = totalLiquidityBorrowed; // SLOAD
         uint256 totalLiquiditySupplied = totalLiquidity + _totalLiquidityBorrowed; // SLOAD
-        uint256 _rewardPerPositionStored = rewardPerPositionStored;
 
         uint256 borrowRate = getBorrowRate(_totalLiquidityBorrowed, totalLiquiditySupplied);
 
@@ -229,12 +228,10 @@ contract Lendgine is ERC20, JumpRate, Pair {
         uint256 dilutionSpeculative = convertLiquidityToCollateral(dilutionLP);
 
         totalLiquidityBorrowed = _totalLiquidityBorrowed - dilutionLP;
-        rewardPerPositionStored =
-            _rewardPerPositionStored +
-            FullMath.mulDiv(dilutionSpeculative, 1 ether, totalPositionSize);
+        rewardPerPositionStored += FullMath.mulDiv(dilutionSpeculative, 1 ether, totalPositionSize);
         lastUpdate = block.timestamp;
 
-        emit AccrueInterest(timeElapsed, dilutionSpeculative, dilutionLP, _rewardPerPositionStored);
+        emit AccrueInterest(timeElapsed, dilutionSpeculative, dilutionLP);
     }
 
     /// @notice Helper function for accruing interest to a position

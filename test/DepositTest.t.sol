@@ -17,15 +17,18 @@ contract DepositTest is TestHelper {
     function testBasicDeposit() external {
         uint256 size = _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
 
-        assertEq(1 ether, size);
-
+        // check lendgine storage slots
         assertEq(1 ether, lendgine.totalLiquidity());
         assertEq(1 ether, lendgine.totalPositionSize());
         assertEq(1 ether, uint256(lendgine.reserve0()));
         assertEq(8 ether, uint256(lendgine.reserve1()));
+
+        // check lendgine balances
         assertEq(1 ether, token0.balanceOf(address(lendgine)));
         assertEq(8 ether, token1.balanceOf(address(lendgine)));
 
+        // check position size
+        assertEq(1 ether, size);
         (uint256 positionSize, , ) = lendgine.positions(cuh);
         assertEq(1 ether, positionSize);
     }
@@ -118,6 +121,50 @@ contract DepositTest is TestHelper {
         assertEq(1, lendgine.lastUpdate());
     }
 
-    // function testAccrueOnDeposit();
-    // function testProportionPositionSize();
+    function testAccrueOnDeposit() external {
+        _deposit(address(this), address(this), 1 ether, 8 ether, 1 ether);
+        _mint(address(this), address(this), 5 ether);
+
+        vm.warp(365 days + 1);
+
+        _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+
+        assertEq(365 days + 1, lendgine.lastUpdate());
+        assert(lendgine.rewardPerPositionStored() != 0);
+    }
+
+    function testAccrueOnPositionDeposit() external {
+        _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+        _mint(address(this), address(this), 5 ether);
+
+        vm.warp(365 days + 1);
+
+        _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+
+        (, uint256 rewardPerPositionPaid, uint256 tokensOwed) = lendgine.positions(cuh);
+        assert(rewardPerPositionPaid != 0);
+        assert(tokensOwed != 0);
+    }
+
+    function testProportionPositionSize() external {
+        _deposit(address(this), address(this), 1 ether, 8 ether, 1 ether);
+        _mint(address(this), address(this), 5 ether);
+
+        vm.warp(365 days + 1);
+
+        uint256 size = _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+
+        uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
+        uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
+
+        // check position size
+        assertEq((1 ether * 1 ether) / (1 ether - lpDilution), size);
+        assertApproxEqAbs(1 ether, (size * (2 ether - lpDilution)) / (1 ether + size), 1);
+        (uint256 positionSize, , ) = lendgine.positions(cuh);
+        assertEq((1 ether * 1 ether) / (1 ether - lpDilution), positionSize);
+
+        // check lendgine storage slots
+        assertEq(1 ether + size, lendgine.totalPositionSize());
+        assertEq(1.5 ether, lendgine.totalLiquidity());
+    }
 }

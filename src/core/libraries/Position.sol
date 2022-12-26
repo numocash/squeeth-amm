@@ -69,18 +69,21 @@ library Position {
 
     function convertLiquidityToPosition(
         uint256 liquidity,
-        uint256 totalLiquidity,
-        uint256 totalLiquiditySupplied
+        uint256 totalLiquiditySupplied,
+        uint256 totalPositionSize
     ) internal pure returns (uint256) {
-        return totalLiquidity == 0 ? liquidity : FullMath.mulDiv(liquidity, totalLiquiditySupplied, totalLiquidity);
+        return
+            totalLiquiditySupplied == 0
+                ? liquidity
+                : FullMath.mulDiv(liquidity, totalPositionSize, totalLiquiditySupplied);
     }
 
     function convertPositionToLiquidity(
         uint256 position,
-        uint256 totalLiquidity,
-        uint256 totalLiquiditySupplied
+        uint256 totalLiquiditySupplied,
+        uint256 totalPositionSize
     ) internal pure returns (uint256) {
-        return FullMath.mulDiv(position, totalLiquidity, totalLiquiditySupplied);
+        return FullMath.mulDiv(position, totalLiquiditySupplied, totalPositionSize);
     }
 
     /*//////////////////////////////////////////////////////////////
