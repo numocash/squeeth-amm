@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import { Lendgine } from "../src/core/Lendgine.sol";
 import { Pair } from "../src/core/Pair.sol";
 import { TestHelper } from "./utils/TestHelper.sol";
+import { FullMath } from "../src/core/libraries/FullMath.sol";
 
 contract BurnTest is TestHelper {
     event Burn(address indexed sender, uint256 collateral, uint256 shares, uint256 liquidity, address indexed to);
@@ -141,7 +142,59 @@ contract BurnTest is TestHelper {
         );
     }
 
-    // function test proportional shares
+    function testAccrueOnBurn() external {
+        vm.warp(365 days + 1);
+        lendgine.accrueInterest();
 
-    // function testAccrueOnBurn
+        uint256 reserve0 = lendgine.reserve0();
+        uint256 reserve1 = lendgine.reserve1();
+
+        uint256 amount0 = FullMath.mulDivRoundingUp(
+            reserve0,
+            lendgine.convertShareToLiquidity(0.5 ether),
+            lendgine.totalLiquidity()
+        );
+        uint256 amount1 = FullMath.mulDivRoundingUp(
+            reserve1,
+            lendgine.convertShareToLiquidity(0.5 ether),
+            lendgine.totalLiquidity()
+        );
+
+        _burn(cuh, cuh, 0.5 ether, amount0, amount1);
+
+        assertEq(365 days + 1, lendgine.lastUpdate());
+        assert(lendgine.rewardPerPositionStored() != 0);
+    }
+
+    function testProportionalBurn() external {
+        vm.warp(365 days + 1);
+        lendgine.accrueInterest();
+
+        uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
+        uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
+
+        uint256 reserve0 = lendgine.reserve0();
+        uint256 reserve1 = lendgine.reserve1();
+        uint256 shares = 0.25 ether;
+
+        uint256 amount0 = FullMath.mulDivRoundingUp(
+            reserve0,
+            lendgine.convertShareToLiquidity(shares),
+            lendgine.totalLiquidity()
+        );
+        uint256 amount1 = FullMath.mulDivRoundingUp(
+            reserve1,
+            lendgine.convertShareToLiquidity(shares),
+            lendgine.totalLiquidity()
+        );
+
+        uint256 collateral = _burn(cuh, cuh, shares, amount0, amount1);
+
+        // check collateral returned
+        assertEq(5 * (0.5 ether - lpDilution), collateral); // withdrew half the collateral
+
+        // check lendgine storage slots
+        assertEq((0.5 ether - lpDilution) / 2, lendgine.totalLiquidityBorrowed()); // withdrew half the liquidity
+        assertEq(0.5 ether + (0.5 ether - lpDilution) / 2, lendgine.totalLiquidity());
+    }
 }

@@ -135,19 +135,20 @@ contract Lendgine is ERC20, JumpRate, Pair {
     function withdraw(address to, uint256 size) external nonReentrant returns (uint256 liquidity) {
         _accrueInterest();
 
+        uint256 _totalPositionSize = totalPositionSize; // SLOAD
         uint256 _totalLiquidity = totalLiquidity; // SLOAD
         uint256 totalLiquiditySupplied = _totalLiquidity + totalLiquidityBorrowed;
 
         // read position
         Position.Info memory positionInfo = positions.get(msg.sender);
-        liquidity = Position.convertPositionToLiquidity(size, _totalLiquidity, totalLiquiditySupplied); // TODO: can liquidity ever be 0
+        liquidity = Position.convertPositionToLiquidity(size, totalLiquiditySupplied, _totalPositionSize); // TODO: can liquidity ever be 0
 
         // validate inputs
         if (liquidity == 0 || size == 0) revert InputError();
 
         // check position
         if (size > positionInfo.size) revert InsufficientPositionError();
-        if (totalLiquidityBorrowed > _totalLiquidity - liquidity) revert CompleteUtilizationError();
+        if (totalLiquidityBorrowed + liquidity > _totalLiquidity) revert CompleteUtilizationError(); // prevents underflows
 
         // update state
         positions.update(msg.sender, -int256(size), rewardPerPositionStored); // TODO: are we safe to cast this

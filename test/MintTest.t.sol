@@ -95,6 +95,29 @@ contract MintTest is TestHelper {
         lendgine.mint(cuh, 5 ether, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
     }
 
-    // function testProportionalMint
-    // function testAccrueOnMint
+    function testAccrueOnMint() external {
+        _mint(cuh, cuh, 1 ether);
+        vm.warp(365 days + 1);
+        _mint(cuh, cuh, 1 ether);
+
+        assertEq(365 days + 1, lendgine.lastUpdate());
+        assert(lendgine.rewardPerPositionStored() != 0);
+    }
+
+    function testProportionalMint() external {
+        _mint(cuh, cuh, 5 ether);
+        vm.warp(365 days + 1);
+        uint256 shares = _mint(cuh, cuh, 1 ether);
+
+        uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
+        uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
+
+        // check mint amount
+        assertEq((0.1 ether * 0.5 ether) / (0.5 ether - lpDilution), shares);
+        assertEq(shares + 0.5 ether, lendgine.balanceOf(cuh));
+
+        // check lendgine storage slots
+        assertEq(0.6 ether - lpDilution, lendgine.totalLiquidityBorrowed());
+        assertEq(shares + 0.5 ether, lendgine.totalSupply());
+    }
 }

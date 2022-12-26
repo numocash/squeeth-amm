@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import { Lendgine } from "../src/core/Lendgine.sol";
 import { Pair } from "../src/core/Pair.sol";
 import { TestHelper } from "./utils/TestHelper.sol";
+import { FullMath } from "../src/core/libraries/FullMath.sol";
 
 contract WithdrawTest is TestHelper {
     event Withdraw(address indexed sender, uint256 size, uint256 liquidity, address indexed to);
@@ -85,7 +86,59 @@ contract WithdrawTest is TestHelper {
         _withdraw(cuh, cuh, 0.6 ether);
     }
 
-    // function testAccrueOnWithdraw
+    function testAccrueOnWithdraw() external {
+        _mint(address(this), address(this), 1 ether);
+        vm.warp(365 days + 1);
+        _withdraw(cuh, cuh, .5 ether);
 
-    // function testPositionSize
+        assertEq(365 days + 1, lendgine.lastUpdate());
+        assert(lendgine.rewardPerPositionStored() != 0);
+    }
+
+    function testAccrueOnPositionWithdraw() external {
+        _mint(address(this), address(this), 1 ether);
+        vm.warp(365 days + 1);
+        _withdraw(cuh, cuh, .5 ether);
+
+        (, uint256 rewardPerPositionPaid, uint256 tokensOwed) = lendgine.positions(cuh);
+        assert(rewardPerPositionPaid != 0);
+        assert(tokensOwed != 0);
+    }
+
+    function testProportionalPositionSize() external {
+        uint256 shares = _mint(address(this), address(this), 5 ether);
+        vm.warp(365 days + 1);
+        lendgine.accrueInterest();
+
+        uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
+        uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
+
+        uint256 reserve0 = lendgine.reserve0();
+        uint256 reserve1 = lendgine.reserve1();
+
+        uint256 amount0 = FullMath.mulDivRoundingUp(
+            reserve0,
+            lendgine.convertShareToLiquidity(0.5 ether),
+            lendgine.totalLiquidity()
+        );
+        uint256 amount1 = FullMath.mulDivRoundingUp(
+            reserve1,
+            lendgine.convertShareToLiquidity(0.5 ether),
+            lendgine.totalLiquidity()
+        );
+
+        _burn(address(this), address(this), 0.5 ether, amount0, amount1);
+
+        uint256 liquidity = _withdraw(cuh, cuh, 1 ether);
+
+        // check liquidity
+        assertEq(liquidity, 1 ether - lpDilution);
+
+        // check lendgine storage slots
+        assertEq(lendgine.totalLiquidity(), 0);
+        assertEq(lendgine.totalPositionSize(), 0);
+        assertEq(lendgine.totalLiquidityBorrowed(), 0);
+        assertEq(0, lendgine.reserve0());
+        assertEq(0, lendgine.reserve1());
+    }
 }
