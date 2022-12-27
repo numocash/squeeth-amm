@@ -33,6 +33,25 @@ contract DepositTest is TestHelper {
         assertEq(1 ether, positionSize);
     }
 
+    function testOverDeposit() external {
+        uint256 size = _deposit(cuh, cuh, 1 ether + 1, 8 ether + 1, 1 ether);
+
+        // check lendgine storage slots
+        assertEq(1 ether, lendgine.totalLiquidity());
+        assertEq(1 ether, lendgine.totalPositionSize());
+        assertEq(1 ether + 1, uint256(lendgine.reserve0()));
+        assertEq(8 ether + 1, uint256(lendgine.reserve1()));
+
+        // check lendgine balances
+        assertEq(1 ether + 1, token0.balanceOf(address(lendgine)));
+        assertEq(8 ether + 1, token1.balanceOf(address(lendgine)));
+
+        // check position size
+        assertEq(1 ether, size);
+        (uint256 positionSize, , ) = lendgine.positions(cuh);
+        assertEq(1 ether, positionSize);
+    }
+
     function testZeroMint() external {
         vm.expectRevert(Lendgine.InputError.selector);
         lendgine.deposit(cuh, 0, bytes(""));

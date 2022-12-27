@@ -169,11 +169,12 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     function collect(address to, uint256 collateralRequested) external nonReentrant returns (uint256 collateral) {
         Position.Info storage position = positions.get(msg.sender);
+        uint256 tokensOwed = position.tokensOwed; // SLOAD
 
-        collateral = collateralRequested > position.tokensOwed ? position.tokensOwed : collateralRequested;
+        collateral = collateralRequested > tokensOwed ? tokensOwed : collateralRequested;
 
         if (collateral > 0) {
-            position.tokensOwed -= collateral;
+            position.tokensOwed = tokensOwed - collateral;
             SafeTransferLib.safeTransfer(token1, to, collateral);
         }
 

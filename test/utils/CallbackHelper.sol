@@ -3,10 +3,11 @@ pragma solidity ^0.8.0;
 
 import { IPairMintCallback } from "../../src/core/interfaces/callbacks/IPairMintCallback.sol";
 import { IMintCallback } from "../../src/core/interfaces/callbacks/IMintCallback.sol";
+import { ISwapCallback } from "../../src/core/interfaces/callbacks/ISwapCallback.sol";
 
 import { SafeTransferLib } from "../../src/libraries/SafeTransferLib.sol";
 
-contract CallbackHelper is IPairMintCallback, IMintCallback {
+contract CallbackHelper is IPairMintCallback, IMintCallback, ISwapCallback {
     struct PairMintCallbackData {
         address token0;
         address token1;
@@ -41,6 +42,32 @@ contract CallbackHelper is IPairMintCallback, IMintCallback {
             SafeTransferLib.safeTransfer(decoded.token, msg.sender, amount);
         } else {
             SafeTransferLib.safeTransferFrom(decoded.token, decoded.payer, msg.sender, amount);
+        }
+    }
+
+    struct SwapCallbackData {
+        address token0;
+        address token1;
+        uint256 amount0;
+        uint256 amount1;
+        address payer;
+    }
+
+    function swapCallback(
+        uint256,
+        uint256,
+        bytes calldata data
+    ) external override {
+        SwapCallbackData memory decoded = abi.decode(data, (SwapCallbackData));
+
+        if (decoded.payer == address(this)) {
+            if (decoded.amount0 > 0) SafeTransferLib.safeTransfer(decoded.token0, msg.sender, decoded.amount0);
+            if (decoded.amount1 > 0) SafeTransferLib.safeTransfer(decoded.token1, msg.sender, decoded.amount1);
+        } else {
+            if (decoded.amount0 > 0)
+                SafeTransferLib.safeTransferFrom(decoded.token0, decoded.payer, msg.sender, decoded.amount0);
+            if (decoded.amount1 > 0)
+                SafeTransferLib.safeTransferFrom(decoded.token1, decoded.payer, msg.sender, decoded.amount1);
         }
     }
 }
