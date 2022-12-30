@@ -186,4 +186,44 @@ contract DepositTest is TestHelper {
         assertEq(1 ether + size, lendgine.totalPositionSize());
         assertEq(1.5 ether, lendgine.totalLiquidity());
     }
+
+    function testNonStandardDecimals() external {
+        token1Scale = 9;
+
+        lendgine = Lendgine(
+            factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound)
+        );
+
+        token0.mint(address(this), 1e18);
+        token1.mint(address(this), 8 * 1e9);
+
+        uint256 size = lendgine.deposit(
+            address(this),
+            1 ether,
+            abi.encode(
+                PairMintCallbackData({
+                    token0: address(token0),
+                    token1: address(token1),
+                    amount0: 1e18,
+                    amount1: 8 * 1e9,
+                    payer: address(this)
+                })
+            )
+        );
+
+        // check lendgine storage slots
+        assertEq(1 ether, lendgine.totalLiquidity());
+        assertEq(1 ether, lendgine.totalPositionSize());
+        assertEq(1 ether, uint256(lendgine.reserve0()));
+        assertEq(8 * 1e9, uint256(lendgine.reserve1()));
+
+        // check lendgine balances
+        assertEq(1 ether, token0.balanceOf(address(lendgine)));
+        assertEq(8 * 1e9, token1.balanceOf(address(lendgine)));
+
+        // check position size
+        assertEq(1 ether, size);
+        (uint256 positionSize, , ) = lendgine.positions(address(this));
+        assertEq(1 ether, positionSize);
+    }
 }

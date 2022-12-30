@@ -2,7 +2,7 @@
 pragma solidity ^0.8.4;
 
 import { PositionMath } from "./PositionMath.sol";
-import { FullMath } from "./FullMath.sol";
+import { FullMath } from "../../libraries/FullMath.sol";
 
 /// @notice Library for handling Lendgine liquidity positions
 /// @author Kyle Scott (https://github.com/Numoen/core/blob/master/src/libraries/Position.sol)

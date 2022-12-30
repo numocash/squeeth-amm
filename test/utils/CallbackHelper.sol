@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.0;
 
-import { IPairMintCallback } from "../../src/core/interfaces/callbacks/IPairMintCallback.sol";
-import { IMintCallback } from "../../src/core/interfaces/callbacks/IMintCallback.sol";
-import { ISwapCallback } from "../../src/core/interfaces/callbacks/ISwapCallback.sol";
+import { IPairMintCallback } from "../../src/core/interfaces/callback/IPairMintCallback.sol";
+import { IMintCallback } from "../../src/core/interfaces/callback/IMintCallback.sol";
+import { ISwapCallback } from "../../src/core/interfaces/callback/ISwapCallback.sol";
 
 import { SafeTransferLib } from "../../src/libraries/SafeTransferLib.sol";
 
@@ -35,13 +35,19 @@ contract CallbackHelper is IPairMintCallback, IMintCallback, ISwapCallback {
         address payer;
     }
 
-    function mintCallback(uint256 amount, bytes calldata data) external override {
+    function mintCallback(
+        uint256 collateral,
+        uint256,
+        uint256,
+        uint256,
+        bytes calldata data
+    ) external override {
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
 
         if (decoded.payer == address(this)) {
-            SafeTransferLib.safeTransfer(decoded.token, msg.sender, amount);
+            SafeTransferLib.safeTransfer(decoded.token, msg.sender, collateral);
         } else {
-            SafeTransferLib.safeTransferFrom(decoded.token, decoded.payer, msg.sender, amount);
+            SafeTransferLib.safeTransferFrom(decoded.token, decoded.payer, msg.sender, collateral);
         }
     }
 

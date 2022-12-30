@@ -22,9 +22,9 @@ contract FactoryTest is Test {
     }
 
     function testGetLendgine() external {
-        address lendgine = factory.createLendgine(address(1), address(2), 1e18, 1e18, 1e18);
+        address lendgine = factory.createLendgine(address(1), address(2), 18, 18, 1e18);
 
-        assertEq(lendgine, factory.getLendgine(address(1), address(2), 1e18, 1e18, 1e18));
+        assertEq(lendgine, factory.getLendgine(address(1), address(2), 18, 18, 1e18));
     }
 
     function testDeployAddress() external {
@@ -35,7 +35,7 @@ contract FactoryTest is Test {
                         abi.encodePacked(
                             hex"ff",
                             address(factory),
-                            keccak256(abi.encode(address(1), address(2), 1e18, 1e18, 1e18)),
+                            keccak256(abi.encode(address(1), address(2), 18, 18, 1e18)),
                             keccak256(type(Lendgine).creationCode)
                         )
                     )
@@ -43,29 +43,29 @@ contract FactoryTest is Test {
             )
         );
 
-        address lendgine = factory.createLendgine(address(1), address(2), 1e18, 1e18, 1e18);
+        address lendgine = factory.createLendgine(address(1), address(2), 18, 18, 1e18);
 
         assertEq(lendgine, lendgineEstimate);
     }
 
     function testSameTokenError() external {
         vm.expectRevert(Factory.SameTokenError.selector);
-        factory.createLendgine(address(1), address(1), 1e18, 1e18, 1e18);
+        factory.createLendgine(address(1), address(1), 18, 18, 1e18);
     }
 
     function testZeroAddressError() external {
         vm.expectRevert(Factory.ZeroAddressError.selector);
-        factory.createLendgine(address(0), address(1), 1e18, 1e18, 1e18);
+        factory.createLendgine(address(0), address(1), 18, 18, 1e18);
 
         vm.expectRevert(Factory.ZeroAddressError.selector);
-        factory.createLendgine(address(1), address(0), 1e18, 1e18, 1e18);
+        factory.createLendgine(address(1), address(0), 18, 18, 1e18);
     }
 
     function testDeployedError() external {
-        factory.createLendgine(address(1), address(2), 1e18, 1e18, 1e18);
+        factory.createLendgine(address(1), address(2), 18, 18, 1e18);
 
         vm.expectRevert(Factory.DeployedError.selector);
-        factory.createLendgine(address(1), address(2), 1e18, 1e18, 1e18);
+        factory.createLendgine(address(1), address(2), 18, 18, 1e18);
     }
 
     function helpParametersZero() private {
@@ -82,7 +82,7 @@ contract FactoryTest is Test {
     function testParameters() external {
         helpParametersZero();
 
-        factory.createLendgine(address(1), address(2), 1e18, 1e18, 1e18);
+        factory.createLendgine(address(1), address(2), 18, 18, 1e18);
 
         helpParametersZero();
     }
@@ -95,7 +95,7 @@ contract FactoryTest is Test {
                         abi.encodePacked(
                             hex"ff",
                             address(factory),
-                            keccak256(abi.encode(address(1), address(2), 1e18, 1e18, 1e18)),
+                            keccak256(abi.encode(address(1), address(2), 18, 18, 1e18)),
                             keccak256(type(Lendgine).creationCode)
                         )
                     )
@@ -103,7 +103,7 @@ contract FactoryTest is Test {
             )
         );
         vm.expectEmit(true, true, true, true, address(factory));
-        emit LendgineCreated(address(1), address(2), 1e18, 1e18, 1e18, lendgineEstimate);
-        factory.createLendgine(address(1), address(2), 1e18, 1e18, 1e18);
+        emit LendgineCreated(address(1), address(2), 18, 18, 1e18, lendgineEstimate);
+        factory.createLendgine(address(1), address(2), 18, 18, 1e18);
     }
 }

@@ -12,8 +12,8 @@ abstract contract TestHelper is Test, CallbackHelper {
     MockERC20 public token0;
     MockERC20 public token1;
 
-    uint256 public token0Scale;
-    uint256 public token1Scale;
+    uint8 public token0Scale;
+    uint8 public token1Scale;
 
     uint256 public upperBound;
 
@@ -33,8 +33,8 @@ abstract contract TestHelper is Test, CallbackHelper {
         cuh = mkaddr("cuh");
         dennis = mkaddr("dennis");
 
-        token0Scale = 1e18;
-        token1Scale = 1e18;
+        token0Scale = 18;
+        token1Scale = 18;
 
         upperBound = 5 * 1e18;
     }
@@ -131,8 +131,15 @@ abstract contract TestHelper is Test, CallbackHelper {
         address from,
         address to,
         uint256 size
-    ) internal returns (uint256 liquidity) {
+    )
+        internal
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 liquidity
+        )
+    {
         vm.prank(from);
-        liquidity = lendgine.withdraw(to, size);
+        (amount0, amount1, liquidity) = lendgine.withdraw(to, size);
     }
 }

@@ -5,12 +5,13 @@ import { ERC20 } from "./ERC20.sol";
 import { JumpRate } from "./JumpRate.sol";
 import { Pair } from "./Pair.sol";
 
-import { IMintCallback } from "./interfaces/callbacks/IMintCallback.sol";
+import { IMintCallback } from "./interfaces/callback/IMintCallback.sol";
 
-import { Balance } from "./libraries/Balance.sol";
-import { FullMath } from "./libraries/FullMath.sol";
+import { Balance } from "../libraries/Balance.sol";
+import { FullMath } from "../libraries/FullMath.sol";
 import { Position } from "./libraries/Position.sol";
 import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
+import { SafeCast } from "../libraries/SafeCast.sol";
 
 contract Lendgine is ERC20, JumpRate, Pair {
     using Position for mapping(address => Position.Info);
@@ -52,7 +53,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
     mapping(address => Position.Info) public positions;
 
-    uint256 public totalPositionSize; // TODO: can we remove this slot
+    uint256 public totalPositionSize;
 
     uint256 public totalLiquidityBorrowed;
 
@@ -77,11 +78,11 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
         // update state
         totalLiquidityBorrowed += liquidity;
-        burn(to, liquidity);
+        (uint256 amount0, uint256 amount1) = burn(to, liquidity);
         _mint(to, shares);
 
         uint256 balanceBefore = Balance.balance(token1);
-        IMintCallback(msg.sender).mintCallback(collateral, data);
+        IMintCallback(msg.sender).mintCallback(collateral, amount0, amount1, liquidity, data);
         uint256 balanceAfter = Balance.balance(token1);
 
         if (balanceAfter < balanceBefore + collateral) revert InsufficientInputError();
@@ -125,14 +126,22 @@ contract Lendgine is ERC20, JumpRate, Pair {
         if (liquidity == 0 || size == 0) revert InputError();
 
         // update state
-        positions.update(to, int256(size), rewardPerPositionStored); // TODO: are we safe to cast this
+        positions.update(to, SafeCast.toInt256(size), rewardPerPositionStored);
         totalPositionSize = _totalPositionSize + size;
         mint(liquidity, data);
 
         emit Deposit(msg.sender, size, liquidity, to);
     }
 
-    function withdraw(address to, uint256 size) external nonReentrant returns (uint256 liquidity) {
+    function withdraw(address to, uint256 size)
+        external
+        nonReentrant
+        returns (
+            uint256 amount0,
+            uint256 amount1,
+            uint256 liquidity
+        )
+    {
         _accrueInterest();
 
         uint256 _totalPositionSize = totalPositionSize; // SLOAD
@@ -141,19 +150,19 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
         // read position
         Position.Info memory positionInfo = positions.get(msg.sender);
-        liquidity = Position.convertPositionToLiquidity(size, totalLiquiditySupplied, _totalPositionSize); // TODO: can liquidity ever be 0
+        liquidity = Position.convertPositionToLiquidity(size, totalLiquiditySupplied, _totalPositionSize);
 
         // validate inputs
         if (liquidity == 0 || size == 0) revert InputError();
 
         // check position
         if (size > positionInfo.size) revert InsufficientPositionError();
-        if (totalLiquidityBorrowed + liquidity > _totalLiquidity) revert CompleteUtilizationError(); // prevents underflows
+        if (totalLiquidityBorrowed + liquidity > _totalLiquidity) revert CompleteUtilizationError();
 
         // update state
-        positions.update(msg.sender, -int256(size), rewardPerPositionStored); // TODO: are we safe to cast this
+        positions.update(msg.sender, -SafeCast.toInt256(size), rewardPerPositionStored);
         totalPositionSize -= size;
-        burn(to, liquidity);
+        (amount0, amount1) = burn(to, liquidity);
 
         emit Withdraw(msg.sender, size, liquidity, to);
     }
@@ -196,11 +205,11 @@ contract Lendgine is ERC20, JumpRate, Pair {
     }
 
     function convertCollateralToLiquidity(uint256 collateral) public view returns (uint256) {
-        return FullMath.mulDiv(collateral, 1 ether, 2 * upperBound);
+        return FullMath.mulDiv(collateral * token1Scale, 1e18, 2 * upperBound);
     }
 
     function convertLiquidityToCollateral(uint256 liquidity) public view returns (uint256) {
-        return FullMath.mulDiv(liquidity, 2 * upperBound, 1 ether);
+        return FullMath.mulDiv(liquidity, 2 * upperBound, 1e18) / token1Scale;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -222,7 +231,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
         uint256 borrowRate = getBorrowRate(_totalLiquidityBorrowed, totalLiquiditySupplied);
 
-        uint256 dilutionLPRequested = (FullMath.mulDiv(borrowRate, _totalLiquidityBorrowed, 1 ether) * timeElapsed) /
+        uint256 dilutionLPRequested = (FullMath.mulDiv(borrowRate, _totalLiquidityBorrowed, 1e18) * timeElapsed) /
             365 days;
         uint256 dilutionLP = dilutionLPRequested > _totalLiquidityBorrowed
             ? _totalLiquidityBorrowed
@@ -230,7 +239,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
         uint256 dilutionSpeculative = convertLiquidityToCollateral(dilutionLP);
 
         totalLiquidityBorrowed = _totalLiquidityBorrowed - dilutionLP;
-        rewardPerPositionStored += FullMath.mulDiv(dilutionSpeculative, 1 ether, totalPositionSize);
+        rewardPerPositionStored += FullMath.mulDiv(dilutionSpeculative, 1e18, totalPositionSize);
         lastUpdate = block.timestamp;
 
         emit AccrueInterest(timeElapsed, dilutionSpeculative, dilutionLP);
