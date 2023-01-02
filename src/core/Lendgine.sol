@@ -73,7 +73,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
         shares = convertLiquidityToShare(liquidity);
 
         if (collateral == 0 || liquidity == 0 || shares == 0) revert InputError();
-        if (liquidity + totalLiquidityBorrowed > totalLiquidity) revert CompleteUtilizationError();
+        if (liquidity > totalLiquidity) revert CompleteUtilizationError();
         if (totalSupply > 0 && totalLiquidityBorrowed == 0) revert CompleteUtilizationError();
 
         // update state
@@ -124,6 +124,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
         // validate inputs
         if (liquidity == 0 || size == 0) revert InputError();
+        // TODO: what if interest has been fully accrued
 
         // update state
         positions.update(to, SafeCast.toInt256(size), rewardPerPositionStored);
@@ -157,7 +158,7 @@ contract Lendgine is ERC20, JumpRate, Pair {
 
         // check position
         if (size > positionInfo.size) revert InsufficientPositionError();
-        if (totalLiquidityBorrowed + liquidity > _totalLiquidity) revert CompleteUtilizationError();
+        if (liquidity > _totalLiquidity) revert CompleteUtilizationError();
 
         // update state
         positions.update(msg.sender, -SafeCast.toInt256(size), rewardPerPositionStored);

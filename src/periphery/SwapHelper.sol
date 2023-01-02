@@ -11,8 +11,6 @@ import { TickMath } from "./UniswapV3/libraries/TickMath.sol";
 import { UniswapV2Library } from "./UniswapV2/libraries/UniswapV2Library.sol";
 
 abstract contract SwapHelper is IUniswapV3SwapCallback {
-    // TODO: add events
-
     /*//////////////////////////////////////////////////////////////
                                 STORAGE
     //////////////////////////////////////////////////////////////*/

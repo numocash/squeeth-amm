@@ -61,14 +61,21 @@ contract MintTest is TestHelper {
         assertEq(8 ether, token1.balanceOf(cuh));
     }
 
+    function testMintFullDouble() external {
+        _mint(cuh, cuh, 5 ether);
+        _mint(cuh, cuh, 5 ether);
+    }
+
     function testZeroMint() external {
         vm.expectRevert(Lendgine.InputError.selector);
         lendgine.mint(cuh, 0, bytes(""));
     }
 
     function testOverMint() external {
+        _mint(address(this), address(this), 5 ether);
+
         vm.expectRevert(Lendgine.CompleteUtilizationError.selector);
-        lendgine.mint(cuh, 11 ether, bytes(""));
+        lendgine.mint(cuh, 5 ether + 10, bytes(""));
     }
 
     function testEmitLendgine() external {

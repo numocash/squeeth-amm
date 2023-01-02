@@ -19,6 +19,8 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
 
     event Mint(address indexed from, address indexed lendgine, uint256 collateral, uint256 shares, address indexed to);
 
+    event Burn(address indexed from, address indexed lendgine, uint256 collateral, uint256 shares, address indexed to);
+
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -64,8 +66,8 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     struct MintCallbackData {
         address token0;
         address token1;
-        uint256 token0Scale;
-        uint256 token1Scale;
+        uint256 token0Exp;
+        uint256 token1Exp;
         uint256 upperBound;
         uint256 collateralMax;
         SwapType swapType;
@@ -86,12 +88,13 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
             factory,
             decoded.token0,
             decoded.token1,
-            decoded.token0Scale,
-            decoded.token1Scale,
+            decoded.token0Exp,
+            decoded.token1Exp,
             decoded.upperBound
         );
         if (lendgine != msg.sender) revert ValidationError();
 
+        // swap token0 to token1
         uint256 collateralSwap = swap(
             decoded.swapType,
             SwapParams({
@@ -103,8 +106,10 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
             decoded.swapExtraData
         );
 
+        // send token1 back
         SafeTransferLib.safeTransfer(decoded.token1, msg.sender, amount1);
 
+        // pull the rest of tokens from the user
         uint256 collateralIn = collateralTotal - amount1 - collateralSwap;
         if (collateralIn > decoded.collateralMax) revert AmountError();
 
@@ -114,8 +119,8 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     struct MintParams {
         address token0;
         address token1;
-        uint256 token0Scale;
-        uint256 token1Scale;
+        uint256 token0Exp;
+        uint256 token1Exp;
         uint256 upperBound;
         uint256 amountIn;
         uint256 amountBorrow;
@@ -131,20 +136,20 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
             factory,
             params.token0,
             params.token1,
-            params.token0Scale,
-            params.token1Scale,
+            params.token0Exp,
+            params.token1Exp,
             params.upperBound
         );
 
         shares = Lendgine(lendgine).mint(
-            params.recipient,
+            address(this),
             params.amountIn + params.amountBorrow,
             abi.encode(
                 MintCallbackData({
                     token0: params.token0,
                     token1: params.token1,
-                    token0Scale: params.token0Scale,
-                    token1Scale: params.token1Scale,
+                    token0Exp: params.token0Exp,
+                    token1Exp: params.token1Exp,
                     upperBound: params.upperBound,
                     collateralMax: params.amountIn,
                     swapType: params.swapType,
@@ -154,6 +159,8 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
             )
         );
         if (shares < params.sharesMin) revert AmountError();
+
+        Lendgine(lendgine).transfer(params.recipient, shares);
 
         emit Mint(msg.sender, lendgine, params.amountIn, shares, params.recipient);
     }
@@ -165,6 +172,9 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     struct PairMintCallbackData {
         address token0;
         address token1;
+        uint256 token0Exp;
+        uint256 token1Exp;
+        uint256 upperBound;
         uint256 collateralMin;
         uint256 amount0Min;
         uint256 amount1Min;
@@ -175,10 +185,18 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
 
     function pairMintCallback(uint256 liquidity, bytes calldata data) external override {
         PairMintCallbackData memory decoded = abi.decode(data, (PairMintCallbackData));
-        // TODO: do we need validation
 
-        uint256 collateralTotal;
+        address lendgine = LendgineAddress.computeAddress(
+            factory,
+            decoded.token0,
+            decoded.token1,
+            decoded.token0Exp,
+            decoded.token1Exp,
+            decoded.upperBound
+        );
+        if (lendgine != msg.sender) revert ValidationError();
 
+        // determine amounts
         uint256 r0 = Lendgine(msg.sender).reserve0();
         uint256 r1 = Lendgine(msg.sender).reserve1();
         uint256 totalLiquidity = Lendgine(msg.sender).totalLiquidity();
@@ -196,6 +214,7 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
 
         if (amount0 < decoded.amount0Min || amount1 < decoded.amount1Min) revert AmountError();
 
+        // swap for token0
         uint256 collateralSwapped = swap(
             decoded.swapType,
             SwapParams({
@@ -207,8 +226,11 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
             decoded.swapExtraData
         );
 
+        // pay token1
         SafeTransferLib.safeTransfer(decoded.token1, msg.sender, amount1);
 
+        // determine remaining and send to recipient
+        uint256 collateralTotal = Lendgine(msg.sender).convertLiquidityToCollateral(liquidity);
         uint256 collateralOut = collateralTotal - amount1 - collateralSwapped;
         if (collateralOut < decoded.collateralMin) revert AmountError();
 
@@ -219,8 +241,8 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     struct BurnParams {
         address token0;
         address token1;
-        uint256 token0Scale;
-        uint256 token1Scale;
+        uint256 token0Exp;
+        uint256 token1Exp;
         uint256 upperBound;
         uint256 shares;
         uint256 collateralMin;
@@ -237,8 +259,8 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
             factory,
             params.token0,
             params.token1,
-            params.token0Scale,
-            params.token1Scale,
+            params.token0Exp,
+            params.token1Exp,
             params.upperBound
         );
 
@@ -252,6 +274,9 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
                 PairMintCallbackData({
                     token0: params.token0,
                     token1: params.token1,
+                    token0Exp: params.token0Exp,
+                    token1Exp: params.token1Exp,
+                    upperBound: params.upperBound,
                     collateralMin: params.collateralMin,
                     amount0Min: params.amount0Min,
                     amount1Min: params.amount1Min,
@@ -261,5 +286,7 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
                 })
             )
         );
+
+        emit Burn(msg.sender, lendgine, amount, params.shares, recipient);
     }
 }

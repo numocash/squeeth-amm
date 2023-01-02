@@ -1,5 +1,4 @@
 # Full reference https://github.com/foundry-rs/foundry/tree/master/config
-
 [profile.default]
 auto_detect_solc = false
 bytecode_hash = "none"
@@ -16,3 +15,11 @@ test = "test"
 [profile.ci]
 fuzz = { runs = 1_000 }
 verbosity = 4
+
+[rpc_endpoints]
+arbitrum = "${RPC_URL_ARBITRUM}"
+goerli = "${RPC_URL_GOERLI}"
+
+[etherscan]
+arbitrum = { key = "${ARBISCAN_KEY}", url = "https://api.arbiscan.io/api" }
+goerli = { key = "${ETHERSCAN_KEY}", url = "https://api-goerli.etherscan.io/api" }

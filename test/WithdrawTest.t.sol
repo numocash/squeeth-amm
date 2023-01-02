@@ -83,11 +83,16 @@ contract WithdrawTest is TestHelper {
         _withdraw(cuh, cuh, 2 ether);
     }
 
+    function testMaxUtilizedWithdraw() external {
+        _mint(address(this), address(this), 5 ether);
+        _withdraw(cuh, cuh, 0.5 ether);
+    }
+
     function testCompleteUtilization() external {
         _mint(address(this), address(this), 5 ether);
 
         vm.expectRevert(Lendgine.CompleteUtilizationError.selector);
-        _withdraw(cuh, cuh, 0.6 ether);
+        _withdraw(cuh, cuh, 0.5 ether + 1);
     }
 
     function testAccrueOnWithdraw() external {
