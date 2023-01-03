@@ -2,7 +2,7 @@
 pragma solidity ^0.8.4;
 
 import { Lendgine } from "../core/Lendgine.sol"; // TODO: use interface
-import { Payment } from "./base/Payment.sol";
+import { Payment } from "./Payment.sol";
 
 import { IPairMintCallback } from "../core/interfaces/callback/IPairMintCallback.sol";
 
@@ -10,261 +10,234 @@ import { FullMath } from "../libraries/FullMath.sol";
 import { LendgineAddress } from "./libraries/LendgineAddress.sol";
 
 contract LiquidityManager is Payment, IPairMintCallback {
-    /*//////////////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
-    event AddLiquidity(
-        address indexed from,
-        address indexed lendgine,
-        uint256 liquidity,
-        uint256 size,
-        uint256 amount0,
-        uint256 amount1,
-        address indexed to
-    );
+  event AddLiquidity(
+    address indexed from,
+    address indexed lendgine,
+    uint256 liquidity,
+    uint256 size,
+    uint256 amount0,
+    uint256 amount1,
+    address indexed to
+  );
 
-    event RemoveLiquidity(
-        address indexed from,
-        address indexed lendgine,
-        uint256 liquidity,
-        uint256 size,
-        uint256 amount0,
-        uint256 amount1,
-        address indexed to
-    );
+  event RemoveLiquidity(
+    address indexed from,
+    address indexed lendgine,
+    uint256 liquidity,
+    uint256 size,
+    uint256 amount0,
+    uint256 amount1,
+    address indexed to
+  );
 
-    event Collect(address indexed from, address indexed lendgine, uint256 amount, address indexed to);
+  event Collect(address indexed from, address indexed lendgine, uint256 amount, address indexed to);
 
-    /*//////////////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////////////////
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
 
-    error LivelinessError();
+  error LivelinessError();
 
-    error AmountError();
+  error AmountError();
 
-    error ValidationError();
+  error ValidationError();
 
-    error PositionInvalidError();
+  error PositionInvalidError();
 
-    error CollectError();
+  error CollectError();
 
-    /*//////////////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////////////////
                                 STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    address public immutable factory;
+  address public immutable factory;
 
-    struct Position {
-        uint256 size;
-        uint256 rewardPerPositionPaid;
-        uint256 tokensOwed;
-    }
+  struct Position {
+    uint256 size;
+    uint256 rewardPerPositionPaid;
+    uint256 tokensOwed;
+  }
 
-    // owner to lendgine to position
-    mapping(address => mapping(address => Position)) public positions;
+  // owner to lendgine to position
+  mapping(address => mapping(address => Position)) public positions;
 
-    /*//////////////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(address _factory, address _weth) Payment(_weth) {
-        factory = _factory;
-    }
+  constructor(address _factory, address _weth) Payment(_weth) {
+    factory = _factory;
+  }
 
-    /*//////////////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////////////////
                            LIVELINESS MODIFIER
     //////////////////////////////////////////////////////////////*/
 
-    modifier checkDeadline(uint256 deadline) {
-        if (deadline < block.timestamp) revert LivelinessError();
-        _;
-    }
+  modifier checkDeadline(uint256 deadline) {
+    if (deadline < block.timestamp) revert LivelinessError();
+    _;
+  }
 
-    /*//////////////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////////////////
                                 CALLBACK
     //////////////////////////////////////////////////////////////*/
 
-    struct PairMintCallbackData {
-        address token0;
-        address token1;
-        uint256 token0Exp;
-        uint256 token1Exp;
-        uint256 upperBound;
-        uint256 amount0;
-        uint256 amount1;
-        address payer;
-    }
+  struct PairMintCallbackData {
+    address token0;
+    address token1;
+    uint256 token0Exp;
+    uint256 token1Exp;
+    uint256 upperBound;
+    uint256 amount0;
+    uint256 amount1;
+    address payer;
+  }
 
-    function pairMintCallback(uint256, bytes calldata data) external {
-        PairMintCallbackData memory decoded = abi.decode(data, (PairMintCallbackData));
+  function pairMintCallback(uint256, bytes calldata data) external {
+    PairMintCallbackData memory decoded = abi.decode(data, (PairMintCallbackData));
 
-        address lendgine = LendgineAddress.computeAddress(
-            factory,
-            decoded.token0,
-            decoded.token1,
-            decoded.token0Exp,
-            decoded.token1Exp,
-            decoded.upperBound
-        );
-        if (lendgine != msg.sender) revert ValidationError();
+    address lendgine = LendgineAddress.computeAddress(
+      factory, decoded.token0, decoded.token1, decoded.token0Exp, decoded.token1Exp, decoded.upperBound
+    );
+    if (lendgine != msg.sender) revert ValidationError();
 
-        if (decoded.amount0 > 0) pay(decoded.token0, decoded.payer, msg.sender, decoded.amount0);
-        if (decoded.amount1 > 0) pay(decoded.token1, decoded.payer, msg.sender, decoded.amount1);
-    }
+    if (decoded.amount0 > 0) pay(decoded.token0, decoded.payer, msg.sender, decoded.amount0);
+    if (decoded.amount1 > 0) pay(decoded.token1, decoded.payer, msg.sender, decoded.amount1);
+  }
 
-    /*//////////////////////////////////////////////////////////////
+  /*//////////////////////////////////////////////////////////////
                         LIQUIDITY MANAGER LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    struct AddLiquidityParams {
-        address token0;
-        address token1;
-        uint256 token0Exp;
-        uint256 token1Exp;
-        uint256 upperBound;
-        uint256 liquidity;
-        uint256 amount0Min;
-        uint256 amount1Min;
-        uint256 sizeMin;
-        address recipient;
-        uint256 deadline;
+  struct AddLiquidityParams {
+    address token0;
+    address token1;
+    uint256 token0Exp;
+    uint256 token1Exp;
+    uint256 upperBound;
+    uint256 liquidity;
+    uint256 amount0Min;
+    uint256 amount1Min;
+    uint256 sizeMin;
+    address recipient;
+    uint256 deadline;
+  }
+
+  function addLiquidity(AddLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
+    address lendgine = LendgineAddress.computeAddress(
+      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
+    );
+
+    uint256 r0 = Lendgine(lendgine).reserve0();
+    uint256 r1 = Lendgine(lendgine).reserve1();
+    uint256 totalLiquidity = Lendgine(lendgine).totalLiquidity();
+
+    uint256 amount0;
+    uint256 amount1;
+
+    if (totalLiquidity == 0) {
+      amount0 = params.amount0Min;
+      amount1 = params.amount1Min;
+    } else {
+      amount0 = FullMath.mulDivRoundingUp(params.liquidity, r0, totalLiquidity);
+      amount1 = FullMath.mulDivRoundingUp(params.liquidity, r1, totalLiquidity);
     }
 
-    function addLiquidity(AddLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
-        address lendgine = LendgineAddress.computeAddress(
-            factory,
-            params.token0,
-            params.token1,
-            params.token0Exp,
-            params.token1Exp,
-            params.upperBound
-        );
+    if (amount0 < params.amount0Min || amount1 < params.amount1Min) revert AmountError();
 
-        uint256 r0 = Lendgine(lendgine).reserve0();
-        uint256 r1 = Lendgine(lendgine).reserve1();
-        uint256 totalLiquidity = Lendgine(lendgine).totalLiquidity();
+    uint256 size = Lendgine(lendgine).deposit(
+      address(this),
+      params.liquidity,
+      abi.encode(
+        PairMintCallbackData({
+          token0: params.token0,
+          token1: params.token1,
+          token0Exp: params.token0Exp,
+          token1Exp: params.token1Exp,
+          upperBound: params.upperBound,
+          amount0: amount0,
+          amount1: amount1,
+          payer: msg.sender
+        })
+      )
+    );
+    if (size < params.sizeMin) revert AmountError();
 
-        uint256 amount0;
-        uint256 amount1;
+    Position memory position = positions[params.recipient][lendgine]; // SLOAD
 
-        if (totalLiquidity == 0) {
-            amount0 = params.amount0Min;
-            amount1 = params.amount1Min;
-        } else {
-            amount0 = FullMath.mulDivRoundingUp(params.liquidity, r0, totalLiquidity);
-            amount1 = FullMath.mulDivRoundingUp(params.liquidity, r1, totalLiquidity);
-        }
+    (, uint256 rewardPerPositionPaid,) = Lendgine(lendgine).positions(address(this));
+    position.tokensOwed += FullMath.mulDiv(position.size, rewardPerPositionPaid - position.rewardPerPositionPaid, 1e18);
+    position.rewardPerPositionPaid = rewardPerPositionPaid;
+    position.size += size;
 
-        if (amount0 < params.amount0Min || amount1 < params.amount1Min) revert AmountError();
+    positions[params.recipient][lendgine] = position; // SSTORE
 
-        uint256 size = Lendgine(lendgine).deposit(
-            address(this),
-            params.liquidity,
-            abi.encode(
-                PairMintCallbackData({
-                    token0: params.token0,
-                    token1: params.token1,
-                    token0Exp: params.token0Exp,
-                    token1Exp: params.token1Exp,
-                    upperBound: params.upperBound,
-                    amount0: amount0,
-                    amount1: amount1,
-                    payer: msg.sender
-                })
-            )
-        );
-        if (size < params.sizeMin) revert AmountError();
+    emit AddLiquidity(msg.sender, lendgine, params.liquidity, size, amount0, amount1, params.recipient);
+  }
 
-        Position memory position = positions[params.recipient][lendgine]; // SLOAD
+  struct RemoveLiquidityParams {
+    address token0;
+    address token1;
+    uint256 token0Exp;
+    uint256 token1Exp;
+    uint256 upperBound;
+    uint256 size;
+    uint256 amount0Min;
+    uint256 amount1Min;
+    address recipient;
+    uint256 deadline;
+  }
 
-        (, uint256 rewardPerPositionPaid, ) = Lendgine(lendgine).positions(address(this));
-        position.tokensOwed += FullMath.mulDiv(
-            position.size,
-            rewardPerPositionPaid - position.rewardPerPositionPaid,
-            1e18
-        );
-        position.rewardPerPositionPaid = rewardPerPositionPaid;
-        position.size += size;
+  function removeLiquidity(RemoveLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
+    address lendgine = LendgineAddress.computeAddress(
+      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
+    );
 
-        positions[params.recipient][lendgine] = position; // SSTORE
+    address recipient = params.recipient == address(0) ? address(this) : params.recipient;
 
-        emit AddLiquidity(msg.sender, lendgine, params.liquidity, size, amount0, amount1, params.recipient);
-    }
+    (uint256 amount0, uint256 amount1, uint256 liquidity) = Lendgine(lendgine).withdraw(recipient, params.size);
+    if (amount0 < params.amount0Min || amount1 < params.amount1Min) revert AmountError();
 
-    struct RemoveLiquidityParams {
-        address token0;
-        address token1;
-        uint256 token0Exp;
-        uint256 token1Exp;
-        uint256 upperBound;
-        uint256 size;
-        uint256 amount0Min;
-        uint256 amount1Min;
-        address recipient;
-        uint256 deadline;
-    }
+    Position memory position = positions[msg.sender][lendgine]; // SLOAD
 
-    function removeLiquidity(RemoveLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
-        address lendgine = LendgineAddress.computeAddress(
-            factory,
-            params.token0,
-            params.token1,
-            params.token0Exp,
-            params.token1Exp,
-            params.upperBound
-        );
+    (, uint256 rewardPerPositionPaid,) = Lendgine(lendgine).positions(address(this));
+    position.tokensOwed += FullMath.mulDiv(position.size, rewardPerPositionPaid - position.rewardPerPositionPaid, 1e18);
+    position.rewardPerPositionPaid = rewardPerPositionPaid;
+    position.size -= params.size;
 
-        address recipient = params.recipient == address(0) ? address(this) : params.recipient;
+    positions[msg.sender][lendgine] = position; // SSTORE
 
-        (uint256 amount0, uint256 amount1, uint256 liquidity) = Lendgine(lendgine).withdraw(recipient, params.size);
-        if (amount0 < params.amount0Min || amount1 < params.amount1Min) revert AmountError();
+    emit RemoveLiquidity(msg.sender, lendgine, liquidity, params.size, amount0, amount1, recipient);
+  }
 
-        Position memory position = positions[msg.sender][lendgine]; // SLOAD
+  struct CollectParams {
+    address lendgine;
+    address recipient;
+    uint256 amountRequested;
+  }
 
-        (, uint256 rewardPerPositionPaid, ) = Lendgine(lendgine).positions(address(this));
-        position.tokensOwed += FullMath.mulDiv(
-            position.size,
-            rewardPerPositionPaid - position.rewardPerPositionPaid,
-            1e18
-        );
-        position.rewardPerPositionPaid = rewardPerPositionPaid;
-        position.size -= params.size;
+  function collect(CollectParams calldata params) external payable returns (uint256 amount) {
+    Lendgine(params.lendgine).accruePositionInterest();
 
-        positions[msg.sender][lendgine] = position; // SSTORE
+    address recipient = params.recipient == address(0) ? address(this) : params.recipient;
 
-        emit RemoveLiquidity(msg.sender, lendgine, liquidity, params.size, amount0, amount1, recipient);
-    }
+    Position memory position = positions[msg.sender][params.lendgine]; // SLOAD
 
-    struct CollectParams {
-        address lendgine;
-        address recipient;
-        uint256 amountRequested;
-    }
+    (, uint256 rewardPerPositionPaid,) = Lendgine(params.lendgine).positions(address(this));
+    position.tokensOwed += FullMath.mulDiv(position.size, rewardPerPositionPaid - position.rewardPerPositionPaid, 1e18);
+    position.rewardPerPositionPaid = rewardPerPositionPaid;
 
-    function collect(CollectParams calldata params) external payable returns (uint256 amount) {
-        Lendgine(params.lendgine).accruePositionInterest();
+    amount = params.amountRequested > position.tokensOwed ? position.tokensOwed : params.amountRequested;
+    position.tokensOwed -= amount;
 
-        address recipient = params.recipient == address(0) ? address(this) : params.recipient;
+    positions[msg.sender][params.lendgine] = position; // SSTORE
 
-        Position memory position = positions[msg.sender][params.lendgine]; // SLOAD
+    uint256 collectAmount = Lendgine(params.lendgine).collect(recipient, amount);
+    if (collectAmount != amount) revert CollectError(); // extra check for safety
 
-        (, uint256 rewardPerPositionPaid, ) = Lendgine(params.lendgine).positions(address(this));
-        position.tokensOwed += FullMath.mulDiv(
-            position.size,
-            rewardPerPositionPaid - position.rewardPerPositionPaid,
-            1e18
-        );
-        position.rewardPerPositionPaid = rewardPerPositionPaid;
-
-        amount = params.amountRequested > position.tokensOwed ? position.tokensOwed : params.amountRequested;
-        position.tokensOwed -= amount;
-
-        positions[msg.sender][params.lendgine] = position; // SSTORE
-
-        uint256 collectAmount = Lendgine(params.lendgine).collect(recipient, amount);
-        if (collectAmount != amount) revert CollectError(); // extra check for safety
-
-        emit Collect(msg.sender, params.lendgine, amount, recipient);
-    }
+    emit Collect(msg.sender, params.lendgine, amount, recipient);
+  }
 }

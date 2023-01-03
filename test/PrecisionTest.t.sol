@@ -20,53 +20,49 @@ import { TestHelper } from "./utils/TestHelper.sol";
 // max tvl: $100,000,000
 
 contract PrecisionTest is TestHelper {
-    function setUp() external {
-        _setUp();
-    }
+  function setUp() external {
+    _setUp();
+  }
 
-    function testBaseline() external {
-        lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
+  function testBaseline() external {
+    lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
 
-        uint256 value = (upperBound * upperBound) / 1e18;
-        uint256 basePerDollar = 1e18;
+    uint256 value = (upperBound * upperBound) / 1e18;
+    uint256 basePerDollar = 1e18;
 
-        uint256 minLP = value / basePerDollar;
+    uint256 minLP = value / basePerDollar;
 
-        assert(type(uint120).max / basePerDollar >= 100_000_000);
-        assert(minLP < 1 ether);
-    }
+    assert(type(uint120).max / basePerDollar >= 100_000_000);
+    assert(minLP < 1 ether);
+  }
 
-    function testHighUpperBound() external {
-        upperBound = 1e27;
-        lendgine = Lendgine(
-            factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound)
-        );
+  function testHighUpperBound() external {
+    upperBound = 1e27;
+    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound));
 
-        lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
+    lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
 
-        uint256 value = (upperBound * upperBound) / 1e18;
-        uint256 basePerDollar = 1e21;
+    uint256 value = (upperBound * upperBound) / 1e18;
+    uint256 basePerDollar = 1e21;
 
-        uint256 minLP = value / basePerDollar;
+    uint256 minLP = value / basePerDollar;
 
-        assert(type(uint120).max / basePerDollar >= 100_000_000);
-        assert(minLP < 1 ether);
-    }
+    assert(type(uint120).max / basePerDollar >= 100_000_000);
+    assert(minLP < 1 ether);
+  }
 
-    function testLowUpperBound() external {
-        upperBound = 1e9;
-        lendgine = Lendgine(
-            factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound)
-        );
+  function testLowUpperBound() external {
+    upperBound = 1e9;
+    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound));
 
-        lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
+    lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
 
-        uint256 value = (upperBound * upperBound) / 1e18;
-        uint256 basePerDollar = 1e27;
+    uint256 value = (upperBound * upperBound) / 1e18;
+    uint256 basePerDollar = 1e27;
 
-        uint256 minLP = value / basePerDollar;
+    uint256 minLP = value / basePerDollar;
 
-        assert(type(uint120).max / basePerDollar >= 100_000_000);
-        assert(minLP < 1 ether);
-    }
+    assert(type(uint120).max / basePerDollar >= 100_000_000);
+    assert(minLP < 1 ether);
+  }
 }

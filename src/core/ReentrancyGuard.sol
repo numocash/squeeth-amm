@@ -6,15 +6,15 @@ pragma solidity >=0.8.0;
 /// @author Modified from OpenZeppelin
 /// (https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/security/ReentrancyGuard.sol)
 abstract contract ReentrancyGuard {
-    uint16 private locked = 1;
+  uint16 private locked = 1;
 
-    modifier nonReentrant() virtual {
-        require(locked == 1, "REENTRANCY");
+  modifier nonReentrant() virtual {
+    require(locked == 1, "REENTRANCY");
 
-        locked = 2;
+    locked = 2;
 
-        _;
+    _;
 
-        locked = 1;
-    }
+    locked = 1;
+  }
 }
