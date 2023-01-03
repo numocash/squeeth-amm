@@ -35,7 +35,7 @@
   },
   "scripts": {
     "clean": "rimraf cache out",
-    "lint": "yarn lint:sol && yarn prettier:check",
+    "lint": "yarn lint:sol && forge fmt",
     "lint:sol": "solhint \"{src,test}/**/*.sol\"",
     "postinstall": "husky install",
     "prettier:check": "prettier --check \"**/*.{json,md,sol,yml}\"",
