@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.4;
 
-import { IWETH9 } from "./interfaces/IWETH9.sol";
+import { IWETH9 } from "./interfaces/external/IWETH9.sol";
 
 import { Balance } from "./../libraries/Balance.sol";
 import { SafeTransferLib } from "./../libraries/SafeTransferLib.sol";

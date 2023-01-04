@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 /// @notice Library for safely and cheaply casting solidity types
-/// @author Kyle Scott (https://github.com/Numoen/core/blob/master/src/libraries/SafeCast.sol)
+/// @author Kyle Scott (kyle@numoen.com)
 /// @author Modified from Uniswap (https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/SafeCast.sol)
 library SafeCast {
   function toUint120(uint256 y) internal pure returns (uint120 z) {

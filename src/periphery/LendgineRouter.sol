@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.4;
 
+import { Multicall } from "./Multicall.sol";
 import { Payment } from "./Payment.sol";
+import { SelfPermit } from "./SelfPermit.sol";
 import { SwapHelper } from "./SwapHelper.sol";
 
 import { ILendgine } from "../core/interfaces/ILendgine.sol";
@@ -13,7 +15,9 @@ import { LendgineAddress } from "./libraries/LendgineAddress.sol";
 import { SafeCast } from "../libraries/SafeCast.sol";
 import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
 
-contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback {
+/// @notice Contract for automatically entering and exiting option positions
+/// @author Kyle Scott (kyle@numoen.com)
+contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCallback, IPairMintCallback {
   /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -96,7 +100,7 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     );
     if (lendgine != msg.sender) revert ValidationError();
 
-    // swap token0 to token1
+    // swap all token0 to token1
     uint256 collateralSwap = swap(
       decoded.swapType,
       SwapParams({
@@ -188,7 +192,6 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     );
     if (lendgine != msg.sender) revert ValidationError();
 
-    // determine amounts
     uint256 r0 = ILendgine(msg.sender).reserve0();
     uint256 r1 = ILendgine(msg.sender).reserve1();
     uint256 totalLiquidity = ILendgine(msg.sender).totalLiquidity();
@@ -206,7 +209,7 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
 
     if (amount0 < decoded.amount0Min || amount1 < decoded.amount1Min) revert AmountError();
 
-    // swap for token0
+    // swap for required token0
     uint256 collateralSwapped = swap(
       decoded.swapType,
       SwapParams({

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.4;
 
+import { Multicall } from "./Multicall.sol";
 import { Payment } from "./Payment.sol";
+import { SelfPermit } from "./SelfPermit.sol";
 
 import { ILendgine } from "../core/interfaces/ILendgine.sol";
 import { IPairMintCallback } from "../core/interfaces/callback/IPairMintCallback.sol";
@@ -9,7 +11,9 @@ import { IPairMintCallback } from "../core/interfaces/callback/IPairMintCallback
 import { FullMath } from "../libraries/FullMath.sol";
 import { LendgineAddress } from "./libraries/LendgineAddress.sol";
 
-contract LiquidityManager is Payment, IPairMintCallback {
+/// @notice Manages liquidity provider positions
+/// @author Kyle Scott (kyle@numoen.com)
+contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
   /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -61,7 +65,7 @@ contract LiquidityManager is Payment, IPairMintCallback {
     uint256 tokensOwed;
   }
 
-  // owner to lendgine to position
+  /// @notice Owner to lendgine to position
   mapping(address => mapping(address => Position)) public positions;
 
   /*//////////////////////////////////////////////////////////////

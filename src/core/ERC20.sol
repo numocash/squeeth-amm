@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 /// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
-/// @author Kyle Scott (https://github.com/numoen/core/blob/master/src/ERC20.sol)
+/// @author Kyle Scott (kyle@numoen.com)
 /// @author Modified from Solmate v6
 /// (https://github.com/transmissions11/solmate/blob/a9e3ea26a2dc73bfa87f0cb189687d029028e0c5/src/tokens/ERC20.sol)
 /// and Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)

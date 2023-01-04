@@ -5,7 +5,7 @@ import { PositionMath } from "./PositionMath.sol";
 import { FullMath } from "../../libraries/FullMath.sol";
 
 /// @notice Library for handling Lendgine liquidity positions
-/// @author Kyle Scott (https://github.com/Numoen/core/blob/master/src/libraries/Position.sol)
+/// @author Kyle Scott (kyle@numoen.com)
 /// @author Modified from Uniswap (https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/Position.sol)
 library Position {
   /*//////////////////////////////////////////////////////////////

@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0;
 
 /// @notice An implementation of the Jump Rate model for interest rates
-/// @author Kyle Scott (https://github.com/numoen/core/blob/master/src/JumpRate.sol)
+/// @author Kyle Scott (kyle@numoen.com)
 /// @author Modified from Compound
 /// (https://github.com/compound-finance/compound-protocol/blob/master/contracts/JumpRateModel.sol)
 interface IJumpRate {

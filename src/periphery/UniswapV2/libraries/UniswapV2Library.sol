@@ -1,7 +1,10 @@
-pragma solidity >=0.5.0;
+pragma solidity >=0.8.0;
 
 import { IUniswapV2Pair } from "../interfaces/IUniswapV2Pair.sol";
 
+/// @notice Library for helpful UniswapV2 functions
+/// @author Uniswap (https://github.com/Uniswap/v2-periphery/blob/master/contracts/libraries/UniswapV2Library.sol)
+/// @dev Updated for newer solidity by removing safe math
 library UniswapV2Library {
   // returns sorted token addresses, used to handle return values from pairs sorted in this order
   function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {

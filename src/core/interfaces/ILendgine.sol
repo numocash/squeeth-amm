@@ -3,6 +3,8 @@ pragma solidity >=0.5.0;
 
 import { IPair } from "./IPair.sol";
 
+/// @notice Lending engine for borrowing and lending liquidity provider shares
+/// @author Kyle Scott (kyle@numoen.com)
 interface ILendgine is IPair {
   /// @notice Returns information about a position given the controllers address
   function positions(address) external view returns (uint256, uint256, uint256);

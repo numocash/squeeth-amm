@@ -34,7 +34,7 @@ abstract contract SwapHelper is IUniswapV3SwapCallback {
 
   function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
     address tokenIn = abi.decode(data, (address));
-    // no validation because this contract should hold no tokens
+    // no validation because this contract should hold no tokens between transactions
 
     SafeTransferLib.safeTransfer(tokenIn, msg.sender, amount0Delta > 0 ? uint256(amount0Delta) : uint256(amount1Delta));
   }

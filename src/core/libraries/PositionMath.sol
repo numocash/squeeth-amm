@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0;
 
 /// @notice Math library for positions
-/// @author Kyle Scott (https://github.com/Numoen/core/blob/master/src/libraries/PositionMath.sol)
+/// @author Kyle Scott (kyle@numoen.com)
 /// @author Modified from Uniswap (https://github.com/Uniswap/v3-core/blob/main/contracts/libraries/LiquidityMath.sol)
 library PositionMath {
   /// @notice Add a signed size delta to size and revert if it overflows or underflows
