@@ -10,11 +10,14 @@ import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
 import { TickMath } from "./UniswapV3/libraries/TickMath.sol";
 import { UniswapV2Library } from "./UniswapV2/libraries/UniswapV2Library.sol";
 
+/// @notice Allows for swapping on Uniswap V2 or V3
+/// @author Kyle Scott (kyle@numoen.com)
 abstract contract SwapHelper is IUniswapV3SwapCallback {
   /*//////////////////////////////////////////////////////////////
                                 STORAGE
     //////////////////////////////////////////////////////////////*/
 
+  /// @dev should match the init code hash in the UniswapV2Library
   address public immutable uniswapV2Factory;
 
   address public immutable uniswapV3Factory;
@@ -59,6 +62,10 @@ abstract contract SwapHelper is IUniswapV3SwapCallback {
     uint24 fee;
   }
 
+  /// @notice Handles swaps on Uniswap V2 or V3
+  /// @param swapType A selector for UniswapV2 or V3
+  /// @param data Extra data that is not used by all types of swaps
+  /// @return amount The amount in or amount out depending on whether the call was exact in or exact out
   function swap(SwapType swapType, SwapParams memory params, bytes memory data) internal returns (uint256 amount) {
     if (swapType == SwapType.UniswapV2) {
       address pair = UniswapV2Library.pairFor(uniswapV2Factory, params.tokenIn, params.tokenOut);

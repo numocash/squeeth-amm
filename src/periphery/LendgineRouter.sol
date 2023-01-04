@@ -83,6 +83,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     address payer;
   }
 
+  /// @notice Transfer the necessary amount of token1 to mint an option position
   function mintCallback(
     uint256 collateralTotal,
     uint256 amount0,
@@ -137,6 +138,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     uint256 deadline;
   }
 
+  /// @notice Use token1 to completely mint an option position
   function mint(MintParams calldata params) external payable checkDeadline(params.deadline) returns (uint256 shares) {
     address lendgine = LendgineAddress.computeAddress(
       factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
@@ -184,6 +186,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     address recipient;
   }
 
+  /// @notice Provide the tokens for the liquidity that is owed
   function pairMintCallback(uint256 liquidity, bytes calldata data) external override {
     PairMintCallbackData memory decoded = abi.decode(data, (PairMintCallbackData));
 
@@ -250,6 +253,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     uint256 deadline;
   }
 
+  /// @notice Take an option position and withdraw it fully into token1
   function burn(BurnParams calldata params) external payable checkDeadline(params.deadline) returns (uint256 amount) {
     address lendgine = LendgineAddress.computeAddress(
       factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound

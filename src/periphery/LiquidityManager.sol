@@ -100,6 +100,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     address payer;
   }
 
+  /// @notice callback that sends the underlying tokens for the specified amount of liquidity shares
   function pairMintCallback(uint256, bytes calldata data) external {
     PairMintCallbackData memory decoded = abi.decode(data, (PairMintCallbackData));
 
@@ -130,6 +131,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     uint256 deadline;
   }
 
+  /// @notice Add liquidity to a liquidity position
   function addLiquidity(AddLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
     address lendgine = LendgineAddress.computeAddress(
       factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
@@ -195,6 +197,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     uint256 deadline;
   }
 
+  /// @notice Removes from a liquidity position
   function removeLiquidity(RemoveLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
     address lendgine = LendgineAddress.computeAddress(
       factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
@@ -223,6 +226,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     uint256 amountRequested;
   }
 
+  /// @notice Collects interest owed to the callers liqudity position
   function collect(CollectParams calldata params) external payable returns (uint256 amount) {
     ILendgine(params.lendgine).accruePositionInterest();
 
