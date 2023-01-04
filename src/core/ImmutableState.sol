@@ -7,22 +7,22 @@ import { IImmutableState } from "./interfaces/IImmutableState.sol";
 
 abstract contract ImmutableState is IImmutableState {
   /// @inheritdoc IImmutableState
-  address public immutable factory;
+  address public immutable override factory;
 
   /// @inheritdoc IImmutableState
-  address public immutable token0;
+  address public immutable override token0;
 
   /// @inheritdoc IImmutableState
-  address public immutable token1;
+  address public immutable override token1;
 
   /// @inheritdoc IImmutableState
-  uint256 public immutable token0Scale;
+  uint256 public immutable override token0Scale;
 
   /// @inheritdoc IImmutableState
-  uint256 public immutable token1Scale;
+  uint256 public immutable override token1Scale;
 
   /// @inheritdoc IImmutableState
-  uint256 public immutable upperBound;
+  uint256 public immutable override upperBound;
 
   constructor() {
     factory = msg.sender;

@@ -5,6 +5,7 @@ import { ERC20 } from "./ERC20.sol";
 import { JumpRate } from "./JumpRate.sol";
 import { Pair } from "./Pair.sol";
 
+import { ILendgine } from "./interfaces/ILendgine.sol";
 import { IMintCallback } from "./interfaces/callback/IMintCallback.sol";
 
 import { Balance } from "../libraries/Balance.sol";
@@ -13,7 +14,7 @@ import { Position } from "./libraries/Position.sol";
 import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
 import { SafeCast } from "../libraries/SafeCast.sol";
 
-contract Lendgine is ERC20, JumpRate, Pair {
+contract Lendgine is ERC20, JumpRate, Pair, ILendgine {
   using Position for mapping(address => Position.Info);
   using Position for Position.Info;
 
@@ -51,18 +52,32 @@ contract Lendgine is ERC20, JumpRate, Pair {
                           LENDGINE STORAGE
     //////////////////////////////////////////////////////////////*/
 
-  mapping(address => Position.Info) public positions;
+  /// @inheritdoc ILendgine
+  mapping(address => Position.Info) public override positions;
 
-  uint256 public totalPositionSize;
+  /// @inheritdoc ILendgine
+  uint256 public override totalPositionSize;
 
-  uint256 public totalLiquidityBorrowed;
+  /// @inheritdoc ILendgine
+  uint256 public override totalLiquidityBorrowed;
 
-  uint256 public rewardPerPositionStored;
+  /// @inheritdoc ILendgine
+  uint256 public override rewardPerPositionStored;
 
-  /// @dev don't downsize because it takes up the last slot
-  uint256 public lastUpdate;
+  /// @inheritdoc ILendgine
+  uint256 public override lastUpdate;
 
-  function mint(address to, uint256 collateral, bytes calldata data) external nonReentrant returns (uint256 shares) {
+  /// @inheritdoc ILendgine
+  function mint(
+    address to,
+    uint256 collateral,
+    bytes calldata data
+  )
+    external
+    override
+    nonReentrant
+    returns (uint256 shares)
+  {
     _accrueInterest();
 
     uint256 liquidity = convertCollateralToLiquidity(collateral);
@@ -73,7 +88,6 @@ contract Lendgine is ERC20, JumpRate, Pair {
     // next check is for the case when liquidity is borrowed but then was completely accrued
     if (totalSupply > 0 && totalLiquidityBorrowed == 0) revert CompleteUtilizationError();
 
-    // update state
     totalLiquidityBorrowed += liquidity;
     (uint256 amount0, uint256 amount1) = burn(to, liquidity);
     _mint(to, shares);
@@ -87,17 +101,16 @@ contract Lendgine is ERC20, JumpRate, Pair {
     emit Mint(msg.sender, collateral, shares, liquidity, to);
   }
 
-  function burn(address to, bytes calldata data) external nonReentrant returns (uint256 collateral) {
+  /// @inheritdoc ILendgine
+  function burn(address to, bytes calldata data) external override nonReentrant returns (uint256 collateral) {
     _accrueInterest();
 
-    // calc shares and liquidity
     uint256 shares = balanceOf[address(this)];
     uint256 liquidity = convertShareToLiquidity(shares);
     collateral = convertLiquidityToCollateral(liquidity);
 
     if (collateral == 0 || liquidity == 0 || shares == 0) revert InputError();
 
-    // update state
     totalLiquidityBorrowed -= liquidity;
     _burn(address(this), shares);
     SafeTransferLib.safeTransfer(token1, to, collateral); // optimistically transfer
@@ -106,21 +119,28 @@ contract Lendgine is ERC20, JumpRate, Pair {
     emit Burn(msg.sender, collateral, shares, liquidity, to);
   }
 
-  function deposit(address to, uint256 liquidity, bytes calldata data) external nonReentrant returns (uint256 size) {
+  /// @inheritdoc ILendgine
+  function deposit(
+    address to,
+    uint256 liquidity,
+    bytes calldata data
+  )
+    external
+    override
+    nonReentrant
+    returns (uint256 size)
+  {
     _accrueInterest();
 
     uint256 _totalPositionSize = totalPositionSize; // SLOAD
     uint256 totalLiquiditySupplied = totalLiquidity + totalLiquidityBorrowed;
 
-    // calculate position
     size = Position.convertLiquidityToPosition(liquidity, totalLiquiditySupplied, _totalPositionSize);
 
-    // validate inputs
     if (liquidity == 0 || size == 0) revert InputError();
     // next check is for the case when liquidity is borrowed but then was completely accrued
     if (totalLiquiditySupplied == 0 && totalPositionSize > 0) revert CompleteUtilizationError();
 
-    // update state
     positions.update(to, SafeCast.toInt256(size), rewardPerPositionStored);
     totalPositionSize = _totalPositionSize + size;
     mint(liquidity, data);
@@ -128,11 +148,13 @@ contract Lendgine is ERC20, JumpRate, Pair {
     emit Deposit(msg.sender, size, liquidity, to);
   }
 
+  /// @inheritdoc ILendgine
   function withdraw(
     address to,
     uint256 size
   )
     external
+    override
     nonReentrant
     returns (uint256 amount0, uint256 amount1, uint256 liquidity)
   {
@@ -142,18 +164,14 @@ contract Lendgine is ERC20, JumpRate, Pair {
     uint256 _totalLiquidity = totalLiquidity; // SLOAD
     uint256 totalLiquiditySupplied = _totalLiquidity + totalLiquidityBorrowed;
 
-    // read position
-    Position.Info memory positionInfo = positions[msg.sender];
+    Position.Info memory positionInfo = positions[msg.sender]; // SLOAD
     liquidity = Position.convertPositionToLiquidity(size, totalLiquiditySupplied, _totalPositionSize);
 
-    // validate inputs
     if (liquidity == 0 || size == 0) revert InputError();
 
-    // check position
     if (size > positionInfo.size) revert InsufficientPositionError();
     if (liquidity > _totalLiquidity) revert CompleteUtilizationError();
 
-    // update state
     positions.update(msg.sender, -SafeCast.toInt256(size), rewardPerPositionStored);
     totalPositionSize -= size;
     (amount0, amount1) = burn(to, liquidity);
@@ -161,16 +179,19 @@ contract Lendgine is ERC20, JumpRate, Pair {
     emit Withdraw(msg.sender, size, liquidity, to);
   }
 
-  function accrueInterest() external nonReentrant {
+  /// @inheritdoc ILendgine
+  function accrueInterest() external override nonReentrant {
     _accrueInterest();
   }
 
-  function accruePositionInterest() external nonReentrant {
+  /// @inheritdoc ILendgine
+  function accruePositionInterest() external override nonReentrant {
     _accrueInterest();
     _accruePositionInterest(msg.sender);
   }
 
-  function collect(address to, uint256 collateralRequested) external nonReentrant returns (uint256 collateral) {
+  /// @inheritdoc ILendgine
+  function collect(address to, uint256 collateralRequested) external override nonReentrant returns (uint256 collateral) {
     Position.Info storage position = positions[msg.sender]; // SLOAD
     uint256 tokensOwed = position.tokensOwed;
 
@@ -188,20 +209,24 @@ contract Lendgine is ERC20, JumpRate, Pair {
                             ACCOUNTING LOGIC
     //////////////////////////////////////////////////////////////*/
 
-  function convertLiquidityToShare(uint256 liquidity) public view returns (uint256) {
+  /// @inheritdoc ILendgine
+  function convertLiquidityToShare(uint256 liquidity) public view override returns (uint256) {
     uint256 _totalLiquidityBorrowed = totalLiquidityBorrowed; // SLOAD
     return _totalLiquidityBorrowed == 0 ? liquidity : FullMath.mulDiv(liquidity, totalSupply, _totalLiquidityBorrowed);
   }
 
-  function convertShareToLiquidity(uint256 shares) public view returns (uint256) {
+  /// @inheritdoc ILendgine
+  function convertShareToLiquidity(uint256 shares) public view override returns (uint256) {
     return FullMath.mulDiv(totalLiquidityBorrowed, shares, totalSupply);
   }
 
-  function convertCollateralToLiquidity(uint256 collateral) public view returns (uint256) {
+  /// @inheritdoc ILendgine
+  function convertCollateralToLiquidity(uint256 collateral) public view override returns (uint256) {
     return FullMath.mulDiv(collateral * token1Scale, 1e18, 2 * upperBound);
   }
 
-  function convertLiquidityToCollateral(uint256 liquidity) public view returns (uint256) {
+  /// @inheritdoc ILendgine
+  function convertLiquidityToCollateral(uint256 liquidity) public view override returns (uint256) {
     return FullMath.mulDiv(liquidity, 2 * upperBound, 1e18) / token1Scale;
   }
 

@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.4;
 
-import { Lendgine } from "../core/Lendgine.sol"; // TODO: use interface
 import { Payment } from "./Payment.sol";
 import { SwapHelper } from "./SwapHelper.sol";
 
-import { FullMath } from "../libraries/FullMath.sol";
+import { ILendgine } from "../core/interfaces/ILendgine.sol";
 import { IMintCallback } from "../core/interfaces/callback/IMintCallback.sol";
 import { IPairMintCallback } from "../core/interfaces/callback/IPairMintCallback.sol";
+
+import { FullMath } from "../libraries/FullMath.sol";
 import { LendgineAddress } from "./libraries/LendgineAddress.sol";
 import { SafeCast } from "../libraries/SafeCast.sol";
 import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
@@ -137,7 +138,7 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
       factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
     );
 
-    shares = Lendgine(lendgine).mint(
+    shares = ILendgine(lendgine).mint(
       address(this),
       params.amountIn + params.amountBorrow,
       abi.encode(
@@ -156,7 +157,7 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     );
     if (shares < params.sharesMin) revert AmountError();
 
-    Lendgine(lendgine).transfer(params.recipient, shares);
+    SafeTransferLib.safeTransfer(lendgine, params.recipient, shares);
 
     emit Mint(msg.sender, lendgine, params.amountIn, shares, params.recipient);
   }
@@ -188,9 +189,9 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     if (lendgine != msg.sender) revert ValidationError();
 
     // determine amounts
-    uint256 r0 = Lendgine(msg.sender).reserve0();
-    uint256 r1 = Lendgine(msg.sender).reserve1();
-    uint256 totalLiquidity = Lendgine(msg.sender).totalLiquidity();
+    uint256 r0 = ILendgine(msg.sender).reserve0();
+    uint256 r1 = ILendgine(msg.sender).reserve1();
+    uint256 totalLiquidity = ILendgine(msg.sender).totalLiquidity();
 
     uint256 amount0;
     uint256 amount1;
@@ -221,7 +222,7 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
     SafeTransferLib.safeTransfer(decoded.token1, msg.sender, amount1);
 
     // determine remaining and send to recipient
-    uint256 collateralTotal = Lendgine(msg.sender).convertLiquidityToCollateral(liquidity);
+    uint256 collateralTotal = ILendgine(msg.sender).convertLiquidityToCollateral(liquidity);
     uint256 collateralOut = collateralTotal - amount1 - collateralSwapped;
     if (collateralOut < decoded.collateralMin) revert AmountError();
 
@@ -253,9 +254,9 @@ contract LendgineRouter is SwapHelper, Payment, IMintCallback, IPairMintCallback
 
     address recipient = params.recipient == address(0) ? address(this) : params.recipient;
 
-    Lendgine(lendgine).transferFrom(msg.sender, lendgine, params.shares);
+    SafeTransferLib.safeTransferFrom(lendgine, msg.sender, lendgine, params.shares);
 
-    amount = Lendgine(lendgine).burn(
+    amount = ILendgine(lendgine).burn(
       address(this),
       abi.encode(
         PairMintCallbackData({

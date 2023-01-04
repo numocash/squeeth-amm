@@ -3,8 +3,8 @@ pragma solidity ^0.8.4;
 
 import { IWETH9 } from "./interfaces/IWETH9.sol";
 
-import { SafeTransferLib } from "./../libraries/SafeTransferLib.sol";
 import { Balance } from "./../libraries/Balance.sol";
+import { SafeTransferLib } from "./../libraries/SafeTransferLib.sol";
 
 /// @title   Payment contract
 /// @author  https://github.com/Uniswap/v3-periphery/blob/main/contracts/base/PeripheryPayments.sol

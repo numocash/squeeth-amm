@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.4;
 
-import { Lendgine } from "../core/Lendgine.sol"; // TODO: use interface
 import { Payment } from "./Payment.sol";
 
+import { ILendgine } from "../core/interfaces/ILendgine.sol";
 import { IPairMintCallback } from "../core/interfaces/callback/IPairMintCallback.sol";
 
 import { FullMath } from "../libraries/FullMath.sol";
@@ -131,9 +131,9 @@ contract LiquidityManager is Payment, IPairMintCallback {
       factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
     );
 
-    uint256 r0 = Lendgine(lendgine).reserve0();
-    uint256 r1 = Lendgine(lendgine).reserve1();
-    uint256 totalLiquidity = Lendgine(lendgine).totalLiquidity();
+    uint256 r0 = ILendgine(lendgine).reserve0();
+    uint256 r1 = ILendgine(lendgine).reserve1();
+    uint256 totalLiquidity = ILendgine(lendgine).totalLiquidity();
 
     uint256 amount0;
     uint256 amount1;
@@ -148,7 +148,7 @@ contract LiquidityManager is Payment, IPairMintCallback {
 
     if (amount0 < params.amount0Min || amount1 < params.amount1Min) revert AmountError();
 
-    uint256 size = Lendgine(lendgine).deposit(
+    uint256 size = ILendgine(lendgine).deposit(
       address(this),
       params.liquidity,
       abi.encode(
@@ -168,7 +168,7 @@ contract LiquidityManager is Payment, IPairMintCallback {
 
     Position memory position = positions[params.recipient][lendgine]; // SLOAD
 
-    (, uint256 rewardPerPositionPaid,) = Lendgine(lendgine).positions(address(this));
+    (, uint256 rewardPerPositionPaid,) = ILendgine(lendgine).positions(address(this));
     position.tokensOwed += FullMath.mulDiv(position.size, rewardPerPositionPaid - position.rewardPerPositionPaid, 1e18);
     position.rewardPerPositionPaid = rewardPerPositionPaid;
     position.size += size;
@@ -198,12 +198,12 @@ contract LiquidityManager is Payment, IPairMintCallback {
 
     address recipient = params.recipient == address(0) ? address(this) : params.recipient;
 
-    (uint256 amount0, uint256 amount1, uint256 liquidity) = Lendgine(lendgine).withdraw(recipient, params.size);
+    (uint256 amount0, uint256 amount1, uint256 liquidity) = ILendgine(lendgine).withdraw(recipient, params.size);
     if (amount0 < params.amount0Min || amount1 < params.amount1Min) revert AmountError();
 
     Position memory position = positions[msg.sender][lendgine]; // SLOAD
 
-    (, uint256 rewardPerPositionPaid,) = Lendgine(lendgine).positions(address(this));
+    (, uint256 rewardPerPositionPaid,) = ILendgine(lendgine).positions(address(this));
     position.tokensOwed += FullMath.mulDiv(position.size, rewardPerPositionPaid - position.rewardPerPositionPaid, 1e18);
     position.rewardPerPositionPaid = rewardPerPositionPaid;
     position.size -= params.size;
@@ -220,13 +220,13 @@ contract LiquidityManager is Payment, IPairMintCallback {
   }
 
   function collect(CollectParams calldata params) external payable returns (uint256 amount) {
-    Lendgine(params.lendgine).accruePositionInterest();
+    ILendgine(params.lendgine).accruePositionInterest();
 
     address recipient = params.recipient == address(0) ? address(this) : params.recipient;
 
     Position memory position = positions[msg.sender][params.lendgine]; // SLOAD
 
-    (, uint256 rewardPerPositionPaid,) = Lendgine(params.lendgine).positions(address(this));
+    (, uint256 rewardPerPositionPaid,) = ILendgine(params.lendgine).positions(address(this));
     position.tokensOwed += FullMath.mulDiv(position.size, rewardPerPositionPaid - position.rewardPerPositionPaid, 1e18);
     position.rewardPerPositionPaid = rewardPerPositionPaid;
 
@@ -235,7 +235,7 @@ contract LiquidityManager is Payment, IPairMintCallback {
 
     positions[msg.sender][params.lendgine] = position; // SSTORE
 
-    uint256 collectAmount = Lendgine(params.lendgine).collect(recipient, amount);
+    uint256 collectAmount = ILendgine(params.lendgine).collect(recipient, amount);
     if (collectAmount != amount) revert CollectError(); // extra check for safety
 
     emit Collect(msg.sender, params.lendgine, amount, recipient);
