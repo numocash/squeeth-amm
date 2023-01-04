@@ -5,6 +5,8 @@ import { Factory } from "../src/core/Factory.sol";
 import { Lendgine } from "../src/core/Lendgine.sol";
 import { Test } from "forge-std/Test.sol";
 
+import { LendgineAddress } from "../src/periphery/libraries/LendgineAddress.sol";
+
 contract FactoryTest is Test {
   event LendgineCreated(
     address indexed token0,
@@ -28,20 +30,7 @@ contract FactoryTest is Test {
   }
 
   function testDeployAddress() external {
-    address lendgineEstimate = address(
-      uint160(
-        uint256(
-          keccak256(
-            abi.encodePacked(
-              hex"ff",
-              address(factory),
-              keccak256(abi.encode(address(1), address(2), 18, 18, 1e18)),
-              keccak256(type(Lendgine).creationCode)
-            )
-          )
-        )
-      )
-    );
+    address lendgineEstimate = LendgineAddress.computeAddress(address(factory), address(1), address(2), 18, 18, 1e18);
 
     address lendgine = factory.createLendgine(address(1), address(2), 18, 18, 1e18);
 
