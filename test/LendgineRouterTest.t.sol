@@ -27,7 +27,9 @@ contract LendgineRouterTest is TestHelper {
   // pool
 
   function setUp() external {
+    // use goerli from a block where we know we can get tokens
     vm.createSelectFork("goerli");
+    vm.rollFork(8_345_575);
 
     _setUp();
     lendgineRouter = new LendgineRouter(
