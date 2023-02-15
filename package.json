@@ -2,18 +2,16 @@
   "name": "@numoen/contracts-mono",
   "description": "Protocol for lending and borrowing custom AMM shares",
   "version": "1.0.0",
-
   "devDependencies": {
-    "@commitlint/cli": "^17.3.0",
-    "@commitlint/config-conventional": "^17.3.0",
-    "commitizen": "^4.2.6",
+    "@commitlint/cli": "^17.4.3",
+    "@commitlint/config-conventional": "^17.4.3",
+    "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.1.0",
-    "prettier": "^2.8.1",
-    "prettier-plugin-solidity": "^1.1.1",
-    "rimraf": "^3.0.2",
-    "solhint": "^3.3.7",
+    "lint-staged": "^13.1.2",
+    "prettier": "^2.8.4",
+    "prettier-plugin-solidity": "^1.1.2",
+    "solhint": "^3.3.8",
     "solhint-plugin-prettier": "^0.0.5"
   },
   "keywords": [
@@ -31,7 +29,7 @@
     "solhint/@solidity-parser/parser": "^0.14.5"
   },
   "scripts": {
-    "clean": "rimraf cache out",
+    "clean": "rm -rf cache out",
     "lint": "yarn lint:sol && forge fmt",
     "lint:sol": "solhint \"{src,test}/**/*.sol\"",
     "postinstall": "husky install",
