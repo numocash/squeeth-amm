@@ -28,9 +28,11 @@ variable_override_spacing = false
 wrap_comments = true
 
 [rpc_endpoints]
+mainnet = "${RPC_URL_MAINNET}"
 arbitrum = "${RPC_URL_ARBITRUM}"
 goerli = "${RPC_URL_GOERLI}"
 
 [etherscan]
+mainnet = { key = "${ETHERSCAN_KEY", url = "https://api.etherscan.io/api" }
 arbitrum = { key = "${ARBISCAN_KEY}", url = "https://api.arbiscan.io/api" }
 goerli = { key = "${ETHERSCAN_KEY}", url = "https://api-goerli.etherscan.io/api" }
