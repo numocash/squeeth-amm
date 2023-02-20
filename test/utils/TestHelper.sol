@@ -55,7 +55,7 @@ abstract contract TestHelper is Test, CallbackHelper {
       token1.approve(address(this), collateral);
     }
 
-    shares = lendgine.mint(to, collateral, abi.encode(MintCallbackData({token: address(token1), payer: from})));
+    shares = lendgine.mint(to, collateral, abi.encode(MintCallbackData({ token: address(token1), payer: from })));
   }
 
   function _burn(

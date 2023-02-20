@@ -102,7 +102,7 @@ contract AccrueInterestTest is TestHelper {
 
     vm.prank(cuh);
     token1.approve(address(this), 5 * 1e9);
-    lendgine.mint(cuh, 5 * 1e9, abi.encode(MintCallbackData({token: address(token1), payer: cuh})));
+    lendgine.mint(cuh, 5 * 1e9, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
 
     vm.warp(365 days + 1);
 

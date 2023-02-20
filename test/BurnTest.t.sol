@@ -210,7 +210,9 @@ contract BurnTest is TestHelper {
 
     token1.mint(address(this), 5 * 1e9);
 
-    lendgine.mint(address(this), 5 * 1e9, abi.encode(MintCallbackData({token: address(token1), payer: address(this)})));
+    lendgine.mint(
+      address(this), 5 * 1e9, abi.encode(MintCallbackData({ token: address(token1), payer: address(this) }))
+    );
 
     lendgine.transfer(address(lendgine), 0.25 ether);
 

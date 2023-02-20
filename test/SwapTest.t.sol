@@ -24,7 +24,7 @@ contract SwapTest is TestHelper {
       0,
       8 ether,
       abi.encode(
-        SwapCallbackData({token0: address(token0), token1: address(token1), amount0: 24 ether, amount1: 0, payer: cuh})
+        SwapCallbackData({ token0: address(token0), token1: address(token1), amount0: 24 ether, amount1: 0, payer: cuh })
       )
     );
 
@@ -49,7 +49,7 @@ contract SwapTest is TestHelper {
       0,
       8 ether,
       abi.encode(
-        SwapCallbackData({token0: address(token0), token1: address(token1), amount0: 23 ether, amount1: 0, payer: cuh})
+        SwapCallbackData({ token0: address(token0), token1: address(token1), amount0: 23 ether, amount1: 0, payer: cuh })
       )
     );
   }
@@ -67,7 +67,7 @@ contract SwapTest is TestHelper {
       0,
       8 ether,
       abi.encode(
-        SwapCallbackData({token0: address(token0), token1: address(token1), amount0: 24 ether, amount1: 0, payer: cuh})
+        SwapCallbackData({ token0: address(token0), token1: address(token1), amount0: 24 ether, amount1: 0, payer: cuh })
       )
     );
   }

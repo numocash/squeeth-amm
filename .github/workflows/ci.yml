@@ -2,6 +2,7 @@ name: "CI"
 
 env:
   FOUNDRY_PROFILE: "ci"
+  RPC_URL_GOERLI: ${{ secrets.RPC_URL_GOERLI }}
 
 on:
   pull_request:
@@ -11,49 +12,62 @@ on:
     branches:
       - "main"
 
+
 jobs:
-  ci:
-    runs-on: "ubuntu-latest"
+
+  lint:
+    runs-on: ubuntu-latest
     steps:
-      - name: "Check out the repo"
-        uses: "actions/checkout@v3"
+      - uses: actions/checkout@v3
         with:
           submodules: "recursive"
-
-      - name: "Install Foundry"
-        uses: "foundry-rs/foundry-toolchain@v1"
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "pnpm"
+      - uses: "foundry-rs/foundry-toolchain@v1"
         with:
           version: "nightly"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint:ci
 
-      - name: "Install Node.js"
-        uses: "actions/setup-node@v3"
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
         with:
-          cache: "yarn"
-          node-version: "lts/*"
+          submodules: "recursive"
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "pnpm"
+      - uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: "nightly"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
 
-      - name: "Install the Node.js dependencies"
-        run: "yarn install --immutable"
-
-      - name: "Lint the contracts"
-        run: "yarn lint"
-
-      - name: "Add lint summary"
-        run: |
-          echo "## Lint" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
-
-      - name: "Show the Foundry config"
-        run: "forge config"
-
-      - name: "Run the tests"
-        run: "forge test"
-
-      - name: "Build the contracts"
-        run: |
-          forge --version
-          forge build --sizes
-
-      - name: "Add test summary"
-        run: |
-          echo "## Tests" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "pnpm"
+      - uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: "nightly"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
