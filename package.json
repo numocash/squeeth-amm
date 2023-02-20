@@ -26,7 +26,9 @@
   "packageManager": "pnpm@7.26.0",
   "private": true,
   "scripts": {
+    "build": "forge build",
     "clean": "rm -rf cache out",
+    "test": "forge test --no-match-path src/core/Lendgine.sol",
     "lint": "forge fmt",
     "lint:ci": "forge fmt --check",
     "lint:sol": "solhint \"{src,test}/**/*.sol\"",

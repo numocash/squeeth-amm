@@ -11,6 +11,9 @@ on:
     branches:
       - "main"
 
+env:
+  RPC_URL_GOERLI: ${{ secrets.RPC_URL_GOERLI }}
+
 jobs:
 
   lint:
@@ -49,7 +52,7 @@ jobs:
         with:
           version: "nightly"
       - run: pnpm install --frozen-lockfile
-      - run: forge build
+      - run: pnpm build
 
   test:
     runs-on: ubuntu-latest
@@ -68,4 +71,4 @@ jobs:
         with:
           version: "nightly"
       - run: pnpm install --frozen-lockfile
-      - run: forge test
+      - run: pnpm test
