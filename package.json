@@ -30,7 +30,8 @@
   },
   "scripts": {
     "clean": "rm -rf cache out",
-    "lint": "yarn lint:sol && forge fmt",
+    "lint": "forge fmt",
+    "lint:ci": "forge fmt --check",
     "lint:sol": "solhint \"{src,test}/**/*.sol\"",
     "postinstall": "husky install",
     "prettier:check": "prettier --check \"**/*.{json,md,sol,yml}\"",

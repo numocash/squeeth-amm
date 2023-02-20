@@ -52,7 +52,7 @@ abstract contract Payment {
   function pay(address token, address payer, address recipient, uint256 value) internal {
     if (token == weth && address(this).balance >= value) {
       // pay with WETH
-      IWETH9(weth).deposit{value: value}(); // wrap only what is needed to pay
+      IWETH9(weth).deposit{ value: value }(); // wrap only what is needed to pay
       SafeTransferLib.safeTransfer(weth, recipient, value);
     } else if (payer == address(this)) {
       // pay with tokens already in the contract (for the exact input multihop case)

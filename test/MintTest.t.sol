@@ -86,7 +86,7 @@ contract MintTest is TestHelper {
 
     vm.expectEmit(true, true, false, true, address(lendgine));
     emit Mint(address(this), 5 ether, 0.5 ether, 0.5 ether, cuh);
-    lendgine.mint(cuh, 5 ether, abi.encode(MintCallbackData({token: address(token1), payer: cuh})));
+    lendgine.mint(cuh, 5 ether, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
   }
 
   function testEmitPair() external {
@@ -97,7 +97,7 @@ contract MintTest is TestHelper {
 
     vm.expectEmit(true, false, false, true, address(lendgine));
     emit Burn(0.5 ether, 4 ether, 0.5 ether, cuh);
-    lendgine.mint(cuh, 5 ether, abi.encode(MintCallbackData({token: address(token1), payer: cuh})));
+    lendgine.mint(cuh, 5 ether, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
   }
 
   function testAccrueOnMint() external {
@@ -152,7 +152,7 @@ contract MintTest is TestHelper {
 
     vm.prank(cuh);
     token1.approve(address(this), 5 * 1e9);
-    uint256 shares = lendgine.mint(cuh, 5 * 1e9, abi.encode(MintCallbackData({token: address(token1), payer: cuh})));
+    uint256 shares = lendgine.mint(cuh, 5 * 1e9, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
 
     // check lendgine token
     assertEq(0.5 ether, shares);

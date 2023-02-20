@@ -475,7 +475,7 @@ contract LiquidityManagerTest is TestHelper {
 
     vm.prank(cuh);
     liquidityManager.collect(
-      LiquidityManager.CollectParams({lendgine: address(lendgine), recipient: cuh, amountRequested: lpDilution * 10})
+      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: cuh, amountRequested: lpDilution * 10 })
     );
 
     // test lendgine storage slots
@@ -505,7 +505,7 @@ contract LiquidityManagerTest is TestHelper {
 
     vm.prank(cuh);
     liquidityManager.collect(
-      LiquidityManager.CollectParams({lendgine: address(lendgine), recipient: cuh, amountRequested: 100 ether})
+      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: cuh, amountRequested: 100 ether })
     );
 
     // test lendgine storage slots
@@ -558,7 +558,7 @@ contract LiquidityManagerTest is TestHelper {
     vm.expectEmit(true, true, true, true, address(liquidityManager));
     emit Collect(cuh, address(lendgine), lpDilution * 10, cuh);
     liquidityManager.collect(
-      LiquidityManager.CollectParams({lendgine: address(lendgine), recipient: cuh, amountRequested: lpDilution * 10})
+      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: cuh, amountRequested: lpDilution * 10 })
     );
   }
 }
