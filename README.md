@@ -31,3 +31,17 @@ forge build
 ```bash
 forge test
 ```
+
+### Local setup
+
+In order to test third party integrations such as interfaces, it is possible to set up a forked mainnet with several positions open
+
+```bash
+sh anvil.sh
+```
+
+then, in a separate terminal,
+
+```bash
+sh setup.sh
+```
