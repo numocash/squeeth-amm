@@ -53,8 +53,8 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
   function invariant(uint256 amount0, uint256 amount1, uint256 liquidity) public view override returns (bool) {
     if (liquidity == 0) return (amount0 == 0 && amount1 == 0);
 
-    uint256 scale0 = FullMath.mulDiv(amount0, 1e18, liquidity) * token0Scale;
-    uint256 scale1 = FullMath.mulDiv(amount1, 1e18, liquidity) * token1Scale;
+    uint256 scale0 = FullMath.mulDiv(amount0 * token0Scale, 1e18, liquidity);
+    uint256 scale1 = FullMath.mulDiv(amount1 * token1Scale, 1e18, liquidity);
 
     if (scale1 > 2 * upperBound) revert InvariantError();
 

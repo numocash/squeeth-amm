@@ -4,7 +4,7 @@ pragma solidity >=0.5.0;
 /// @notice Library for computing the address of a lendgine using only its inputs
 library LendgineAddress {
   uint256 internal constant INIT_CODE_HASH =
-    71_695_300_681_742_793_458_567_320_549_603_773_755_938_496_017_772_337_363_704_152_556_600_186_974;
+    54_077_118_415_036_375_799_727_632_405_414_219_288_686_146_435_384_080_671_378_369_222_491_001_741_386;
 
   function computeAddress(
     address factory,

@@ -249,7 +249,7 @@ contract Lendgine is ERC20, JumpRate, Pair, ILendgine {
 
     uint256 borrowRate = getBorrowRate(_totalLiquidityBorrowed, totalLiquiditySupplied);
 
-    uint256 dilutionLPRequested = (FullMath.mulDiv(borrowRate, _totalLiquidityBorrowed, 1e18) * timeElapsed) / 365 days;
+    uint256 dilutionLPRequested = (FullMath.mulDiv(borrowRate * timeElapsed, _totalLiquidityBorrowed, 1e18)) / 365 days;
     uint256 dilutionLP = dilutionLPRequested > _totalLiquidityBorrowed ? _totalLiquidityBorrowed : dilutionLPRequested;
     uint256 dilutionSpeculative = convertLiquidityToCollateral(dilutionLP);
 
