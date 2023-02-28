@@ -18,11 +18,12 @@ contract Deploy is Script {
   function run() external returns (Factory, LiquidityManager, LendgineRouter) {
     uint256 pk = vm.envUint("PRIVATE_KEY");
     vm.startBroadcast(pk);
-    Factory factory = new Factory{salt: keccak256("NumoenFactoryTest1")}();
+
+    Factory factory = new Factory{salt: keccak256("NumoenFactory1")}();
     LiquidityManager liquidityManager =
-      new LiquidityManager{salt: keccak256("NumoenLiquidityManagerTest1")}(address(factory), weth);
+      new LiquidityManager{salt: keccak256("NumoenLiquidityManager1")}(address(factory), weth);
     LendgineRouter lendgineRouter =
-    new LendgineRouter{salt: keccak256("NumoenLendgineRouterTest1")}(address(factory), uniV2Factory, uniV3Factory,
+    new LendgineRouter{salt: keccak256("NumoenLendgineRouter1")}(address(factory), uniV2Factory, uniV3Factory,
     weth);
 
     return (factory, liquidityManager, lendgineRouter);
