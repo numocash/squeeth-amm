@@ -31,8 +31,12 @@ wrap_comments = true
 mainnet = "${RPC_URL_MAINNET}"
 arbitrum = "${RPC_URL_ARBITRUM}"
 goerli = "${RPC_URL_GOERLI}"
+celo = "${RPC_URL_CELO}"
+polygon = "https://polygon-rpc.com"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_KEY", url = "https://api.etherscan.io/api" }
 arbitrum = { key = "${ARBISCAN_KEY}", url = "https://api.arbiscan.io/api" }
 goerli = { key = "${ETHERSCAN_KEY}", url = "https://api-goerli.etherscan.io/api" }
+celo = { key = "${CELOSCAN_KEY}", url = "https://api.celoscan.io/api" }
+polygon = { key = "${POLYGONSCAN_KEY}", url = "https://api.polygonscan.com/api" }
