@@ -1,4 +1,4 @@
-# Numoen Contracts
+# Numoen PMMP Contracts
 
 Protocol for lending and borrowing custom AMM shares.
 
@@ -7,7 +7,7 @@ Protocol for lending and borrowing custom AMM shares.
 To install with [Foundry](https://github.com/foundry-rs/foundry):
 
 ```bash
-forge install numoen/contracts-mono
+forge install numoen/pmmp
 ```
 
 ## Local development
