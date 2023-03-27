@@ -13,7 +13,7 @@ import { LendgineRouter } from "src/periphery/LendgineRouter.sol";
 contract Deploy is Script {
   address constant create3Factory = 0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1;
 
-  address constant uniV2Factory = 0xc35DADB65012eC5796536bD9864eD8773aBc74C4;
+  address constant uniV2Factory = 0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32;
   address constant uniV3Factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
 
   address constant weth = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
