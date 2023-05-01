@@ -1,6 +1,6 @@
-# Numoen PMMP Contracts
+# Power Market Maker Protocol (PMMP)
 
-Protocol for lending and borrowing custom AMM shares.
+Smart contracts suite of PMMP for lending and borrowing custom AMM shares.
 
 ## Installation
 
