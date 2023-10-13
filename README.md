@@ -1,6 +1,6 @@
 # Power Market Maker Protocol (PMMP)
 
-Smart contracts suite of PMMP, an automated market maker for the exchange of power perpetuals.
+Smart contracts suite of PMMP, an automated market maker of power perpetuals on Ethereum. 
 
 ## Installation
 
