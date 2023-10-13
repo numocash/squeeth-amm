@@ -1,6 +1,6 @@
 # Power Market Maker Protocol (PMMP)
 
-Smart contracts suite of PMMP for lending and borrowing custom AMM shares.
+Smart contracts suite of PMMP, an automated market maker for the exchange of power perpetuals.
 
 ## Installation
 
