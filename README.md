@@ -1,6 +1,6 @@
-# Numoen
+# ⚡ QuadMaker
 
-Smart contracts suite of Numoen, an automated market maker of power perpetuals on Ethereum. 
+Smart contracts suite of QuadMaker, an automated market maker of quadratic perpetuals on Ethereum. 
 
 ## Installation
 
