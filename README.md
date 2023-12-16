@@ -1,6 +1,6 @@
-# Power Market Maker Protocol (PMMP)
+# Numoen
 
-Smart contracts suite of PMMP, an automated market maker of power perpetuals on Ethereum. 
+Smart contracts suite of Numoen, an automated market maker of power perpetuals on Ethereum. 
 
 ## Installation
 
