@@ -1,6 +1,6 @@
 # ⚡ QuadMaker
 
-Smart contracts suite of QuadMaker, an automated market maker of quadratic perpetuals on Ethereum. 
+Smart contracts suite of QuadMaker, an automated market maker of quadratic options on Ethereum. 
 
 ![QuadMaker_Logo2](https://github.com/Numoen/QuadMaker/assets/44106773/1cf8fc8d-be7c-49bc-aaff-6c61fcfcd628)
 
