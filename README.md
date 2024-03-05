@@ -1,6 +1,6 @@
-# ⚡ PowerMaker
+# ⚡ QuadMaker
 
-Smart contracts suite of PowerMaker, an automated market maker of power perpetuals on Ethereum. 
+Smart contracts suite of QuadMaker, an automated market maker of second order power perpetuals on Ethereum. 
 
 ## Installation
 
