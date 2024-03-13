@@ -2,7 +2,7 @@
 pragma solidity ^0.8.4;
 
 /// @notice Library for safely and cheaply reading balances
-/// @author Kyle Scott (kyle@numoen.com)
+/// @author Kyle Scott and Robert Leifke
 /// @author Modified from UniswapV3Pool
 /// (https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Pool.sol#L140-L145)
 library Balance {

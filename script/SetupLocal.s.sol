@@ -54,10 +54,10 @@ contract SetupLocalScript is Script {
 
     // deploy core contracts
     vm.startBroadcast(pk);
-    Factory factory = new Factory{salt: keccak256("NumoenFactoryTest1")}();
+    Factory factory = new Factory{salt: keccak256("NumoFactoryTest1")}();
     LiquidityManager liquidityManager =
-      new LiquidityManager{salt: keccak256("NumoenLiquidityManagerTest1")}(address(factory), weth);
-    LendgineRouter lendgineRouter = new LendgineRouter{salt: keccak256("NumoenLendgineRouterTest1")}(
+      new LiquidityManager{salt: keccak256("NumoLiquidityManagerTest1")}(address(factory), weth);
+    LendgineRouter lendgineRouter = new LendgineRouter{salt: keccak256("NumoLendgineRouterTest1")}(
       address(factory),
       uniV2Factory,
       uniV3Factory,

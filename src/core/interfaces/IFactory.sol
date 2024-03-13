@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.5.0;
 
-/// @notice Manages the recording and creation of Numoen markets
-/// @author Kyle Scott (https://github.com/numoen/contracts-mono/blob/master/src/Factory.sol)
+/// @notice Manages the recording and creation of Numo markets
+/// @author Kyle Scott and Robert Leifke
 /// @author Modified from Uniswap (https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2Factory.sol)
 /// and Primitive (https://github.com/primitivefinance/rmm-core/blob/main/contracts/PrimitiveFactory.sol)
 interface IFactory {

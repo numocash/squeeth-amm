@@ -28,11 +28,11 @@ variable_override_spacing = false
 wrap_comments = true
 
 [rpc_endpoints]
-mainnet = "${RPC_URL_MAINNET}"
-arbitrum = "${RPC_URL_ARBITRUM}"
-goerli = "${RPC_URL_GOERLI}"
-celo = "${RPC_URL_CELO}"
-polygon = "https://polygon-rpc.com"
+# mainnet = "${RPC_URL_MAINNET}"
+# arbitrum = "${RPC_URL_ARBITRUM}"
+# goerli = "${RPC_URL_GOERLI}"
+# celo = "${RPC_URL_CELO}"
+# polygon = "https://polygon-rpc.com"
 sepolia = "${RPC_URL_SEPOLIA}"
 
 

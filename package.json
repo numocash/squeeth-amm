@@ -1,6 +1,6 @@
 {
-  "name": "@numoen/contracts-mono",
-  "description": "Protocol for lending and borrowing custom AMM shares",
+  "name": "@numo/powermaker",
+  "description": "Automated market maker for power perpetuals",
   "version": "1.0.0",
   "devDependencies": {
     "@commitlint/cli": "^17.4.3",

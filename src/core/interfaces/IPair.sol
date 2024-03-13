@@ -4,7 +4,7 @@ pragma solidity >=0.5.0;
 import { IImmutableState } from "./IImmutableState.sol";
 
 /// @notice AMM implementing the capped power invariant
-/// @author Kyle Scott (kyle@numoen.com)
+/// @author Kyle Scott and Robert Leifke
 interface IPair is IImmutableState {
   /// @notice The amount of token0 in the pair
   function reserve0() external view returns (uint120);

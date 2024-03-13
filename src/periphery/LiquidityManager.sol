@@ -12,7 +12,7 @@ import { FullMath } from "../libraries/FullMath.sol";
 import { LendgineAddress } from "./libraries/LendgineAddress.sol";
 
 /// @notice Manages liquidity provider positions
-/// @author Kyle Scott (kyle@numoen.com)
+/// @author Kyle Scott and Robert Leifke
 contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
   /*//////////////////////////////////////////////////////////////
                                  EVENTS

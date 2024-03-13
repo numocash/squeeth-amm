@@ -19,17 +19,17 @@ contract LendgineRouterTest is TestHelper {
 
   LendgineRouter public lendgineRouter;
 
-  IUniswapV2Factory public uniswapV2Factory = IUniswapV2Factory(0xc35DADB65012eC5796536bD9864eD8773aBc74C4);
+  IUniswapV2Factory public uniswapV2Factory = IUniswapV2Factory(0xB7f907f7A9eBC822a80BD25E224be42Ce0A698A0);
   IUniswapV2Pair public uniswapV2Pair;
-  IUniswapV3Factory public uniswapV3Factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
-  IUniswapV3Pool public uniswapV3Pool = IUniswapV3Pool(0x07A4f63f643fE39261140DF5E613b9469eccEC86); // uni / eth 5 bps
+  IUniswapV3Factory public uniswapV3Factory = IUniswapV3Factory(0x0227628f3F023bb0B980b67D528571c95c6DaC1c);
+  IUniswapV3Pool public uniswapV3Pool = IUniswapV3Pool(0x51aDC79e7760aC5317a0d05e7a64c4f9cB2d4369); // uni / eth / 100 bps
 
   // pool
 
   function setUp() external {
-    // use goerli from a block where we know we can get tokens
-    vm.createSelectFork("goerli");
-    vm.rollFork(8_345_575);
+    // use sepolia from a block where we know we can get tokens
+    vm.createSelectFork("sepolia");
+    vm.rollFork(2_244_070); //latest block
 
     _setUp();
     lendgineRouter = new LendgineRouter(
@@ -50,8 +50,8 @@ contract LendgineRouterTest is TestHelper {
 
   function setUpUniswapV3() internal {
     // change tokens
-    token0 = MockERC20(0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984); // UNI
-    token1 = MockERC20(0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6); // WETH
+    token0 = MockERC20(0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984); // Sepolia UNI
+    token1 = MockERC20(0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14); // Sepolia WETH
 
     // get tokens
     vm.prank(0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984);

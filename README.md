@@ -6,8 +6,12 @@ Smart contracts suite of PowerMaker, an automated market maker of power perpetua
 
 To install with [Foundry](https://github.com/foundry-rs/foundry):
 
-```bash
+<!-- ```bash
 forge install numoen/pmmp
+``` -->
+
+```bash
+forge install numo/powermaker
 ```
 
 ## Local development
