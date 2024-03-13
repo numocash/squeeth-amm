@@ -27,15 +27,15 @@ contract SetupLocalScript is Script {
 
   address constant weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
   address constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // has 6 decimals
-  address constant illuvium = 0x767FE9EDC9E0dF98E07454847909b5E959D7ca0E;
+  address constant uni = 0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984;
 
   uint256 immutable usdcWethPrice = uniV2Price(usdc, weth) * 10 ** 12;
-  uint256 immutable wethIlvPrice = uniV2Price(weth, illuvium);
-  uint256 immutable ilvWethPrice = uniV2Price(illuvium, weth);
+  uint256 immutable wethUniPrice = uniV2Price(weth, uni);
+  uint256 immutable uniWethPrice = uniV2Price(uni, weth);
 
   uint256 constant usdcWethBound = 3000 * 10 ** 18; // TODO: adjust for decimals
-  uint256 constant wethIlvBound = 15 * 10 ** 16;
-  uint256 constant ilvWethBound = 60 * 10 ** 18;
+  uint256 constant wethUniBound = 15 * 10 ** 16;
+  uint256 constant uniWethBound = 60 * 10 ** 18;
 
   function uniV2Price(address base, address quote) internal view returns (uint256 price) {
     address pair = UniswapV2Library.pairFor(uniV2Factory, base, quote);
@@ -66,8 +66,8 @@ contract SetupLocalScript is Script {
 
     // deploy new lendgines
     console2.log("usdc/weth lendgine: ", factory.createLendgine(usdc, weth, 6, 18, usdcWethBound));
-    console2.log("weth/ilv lendgine: ", factory.createLendgine(weth, illuvium, 18, 18, wethIlvBound));
-    console2.log("ilv/weth lendgine: ", factory.createLendgine(illuvium, weth, 18, 18, ilvWethBound));
+    console2.log("weth/uni lendgine: ", factory.createLendgine(weth, uni, 18, 18, wethUniBound));
+    console2.log("uni/weth lendgine: ", factory.createLendgine(uni, weth, 18, 18, uniWethBound));
 
     // mint tokens to addr
     IWETH9(weth).deposit{ value: 100 ether }();
@@ -75,11 +75,11 @@ contract SetupLocalScript is Script {
     // add liquidity to each market
     ERC20(weth).approve(address(liquidityManager), 50 * 1e18);
     ERC20(usdc).approve(address(liquidityManager), 50 * 1e6);
-    ERC20(illuvium).approve(address(liquidityManager), 50 * 1e18);
+    ERC20(uni).approve(address(liquidityManager), 50 * 1e18);
 
     uint256 reserveWeth;
     uint256 reserveUsdc;
-    uint256 reserveIlluvium;
+    uint256 reserveUni;
     (reserveUsdc, reserveWeth) = priceToReserves(usdcWethPrice, usdcWethBound);
     liquidityManager.addLiquidity(
       LiquidityManager.AddLiquidityParams({
@@ -96,33 +96,33 @@ contract SetupLocalScript is Script {
         deadline: block.timestamp + 120
       })
     );
-    (reserveWeth, reserveIlluvium) = priceToReserves(wethIlvPrice, wethIlvBound);
+    (reserveWeth, reserveUni) = priceToReserves(wethUniPrice, wethUniBound);
     liquidityManager.addLiquidity(
       LiquidityManager.AddLiquidityParams({
         token0: weth,
-        token1: illuvium,
+        token1: uni,
         token0Exp: 18,
         token1Exp: 18,
-        upperBound: wethIlvBound,
+        upperBound: wethUniBound,
         liquidity: 1 ether * 1e2,
         amount0Min: (reserveWeth * 1e2) + 100,
-        amount1Min: (reserveIlluvium * 1e2) + 100,
+        amount1Min: (reserveUni * 1e2) + 100,
         sizeMin: 1 ether * 1e2,
         recipient: addr,
         deadline: block.timestamp + 120
       })
     );
-    (reserveWeth, reserveIlluvium) = priceToReserves(ilvWethPrice, ilvWethBound);
+    (reserveWeth, reserveUni) = priceToReserves(uniWethPrice, uniWethBound);
     liquidityManager.addLiquidity(
       LiquidityManager.AddLiquidityParams({
-        token0: illuvium,
+        token0: uni,
         token1: weth,
         token0Exp: 18,
         token1Exp: 18,
-        upperBound: ilvWethBound,
+        upperBound: uniWethBound,
         liquidity: 1 ether / 20,
         amount0Min: (reserveWeth / 20) + 20,
-        amount1Min: (reserveIlluvium / 20) + 20,
+        amount1Min: (reserveUni / 20) + 20,
         sizeMin: 1 ether / 20,
         recipient: addr,
         deadline: block.timestamp + 120
@@ -130,15 +130,15 @@ contract SetupLocalScript is Script {
     );
 
     // borrow from market
-    ERC20(illuvium).approve(address(lendgineRouter), 50 * 1e18);
+    ERC20(uni).approve(address(lendgineRouter), 50 * 1e18);
 
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: weth,
-        token1: illuvium,
+        token1: uni,
         token0Exp: 18,
         token1Exp: 18,
-        upperBound: wethIlvBound,
+        upperBound: wethUniBound,
         amountIn: 1e18,
         amountBorrow: 4 * 1e18,
         sharesMin: 0,

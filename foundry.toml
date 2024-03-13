@@ -37,9 +37,9 @@ sepolia = "${RPC_URL_SEPOLIA}"
 
 
 [etherscan]
-mainnet = { key = "${ETHERSCAN_KEY", url = "https://api.etherscan.io/api" }
-arbitrum = { key = "${ARBISCAN_KEY}", url = "https://api.arbiscan.io/api" }
-goerli = { key = "${ETHERSCAN_KEY}", url = "https://api-goerli.etherscan.io/api" }
-celo = { key = "${CELOSCAN_KEY}", url = "https://api.celoscan.io/api" }
-polygon = { key = "${POLYGONSCAN_KEY}", url = "https://api.polygonscan.com/api" }
-sepolia = { key = "${SEPOLIA_ETHERSCAN_KEY", url = "https://api-sepolia.etherscan.io/api" }
+# ainnet = { key = "${ETHERSCAN_KEY", url = "https://api.etherscan.io/api" }
+# arbitrum = { key = "${ARBISCAN_KEY}", url = "https://api.arbiscan.io/api" }
+# goerli = { key = "${ETHERSCAN_KEY}", url = "https://api-goerli.etherscan.io/api" }
+# celo = { key = "${CELOSCAN_KEY}", url = "https://api.celoscan.io/api" }
+# polygon = { key = "${POLYGONSCAN_KEY}", url = "https://api.polygonscan.com/api" }m
+sepolia = { key = "${ETHERSCAN_KEY", url = "https://api-sepolia.etherscan.io/api" }
