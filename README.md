@@ -1,13 +1,11 @@
-# ⚡ QuadMaker
+# ⚡ PowerMaker
 
-Smart contracts suite of QuadMaker, an automated market maker of second order power perpetuals on Ethereum. 
+Smart contracts suite of PowerMaker, an automated market maker of second order power perpetuals on Ethereum. 
 
 ## Installation
 
-To install with [Foundry](https://github.com/foundry-rs/foundry):
-
 ```bash
-forge install numoen/pmmp
+forge install
 ```
 
 ## Local development
