@@ -24,6 +24,14 @@ This project uses [Foundry](https://github.com/foundry-rs/foundry) as the develo
 forge install
 ```
 
+```bash
+npm install @openzeppelin/contracts
+```
+
+```bash
+npm install create3-factory
+```
+
 ### Compilation
 
 ```bash
