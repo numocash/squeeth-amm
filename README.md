@@ -2,6 +2,7 @@
 
 Smart contracts suite of PowerMaker, an automated market maker of second order power perpetuals on Ethereum. 
 
+
 ## Installation
 
 ```bash
