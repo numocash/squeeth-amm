@@ -21,20 +21,26 @@ contract Deploy is Script {
   address constant weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
 
   function run() external returns (address factory, address liquidityManager, address lendgineRouter) {
-    CREATE3Factory create3 = CREATE3Factory(create3Factory);
+    // CREATE3Factory create3 = CREATE3Factory(create3Factory);
 
     uint256 pk = vm.envUint("PRIVATE_KEY");
     vm.startBroadcast(pk);
 
-    factory = create3.deploy(keccak256("NumoFactory"), type(Factory).creationCode);
+    factory = address(new Factory());
 
-    liquidityManager = create3.deploy(
-      keccak256("NumoLiquidityManager"), bytes.concat(type(LiquidityManager).creationCode, abi.encode(factory, weth))
-    );
+    liquidityManager = address(new LiquidityManager(factory, weth));
 
-    lendgineRouter = create3.deploy(
-      keccak256("NumoLendgineRouter"),
-      bytes.concat(type(LendgineRouter).creationCode, abi.encode(factory, uniV2Factory, uniV3Factory, weth))
-    );
+    lendgineRouter = address(new LendgineRouter(factory, uniV2Factory, uniV3Factory, weth));
+
+    // factory = create3.deploy(keccak256("NumoFactory"), type(Factory).creationCode);
+
+    // liquidityManager = create3.deploy(
+    //   keccak256("NumoLiquidityManager"), bytes.concat(type(LiquidityManager).creationCode, abi.encode(factory, weth))
+    // );
+
+    // lendgineRouter = create3.deploy(
+    //   keccak256("NumoLendgineRouter"),
+    //   bytes.concat(type(LendgineRouter).creationCode, abi.encode(factory, uniV2Factory, uniV3Factory, weth))
+    // );
   }
 }

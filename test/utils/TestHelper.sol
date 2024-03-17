@@ -40,8 +40,10 @@ abstract contract TestHelper is Test, CallbackHelper {
   }
 
   function _setUp() internal {
-    token0 = new MockERC20();
-    token1 = new MockERC20();
+    MockERC20 tokenA = new MockERC20();
+    MockERC20 tokenB = new MockERC20();
+
+    (token0, token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
 
     factory = new Factory();
     lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound));
