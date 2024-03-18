@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import { IJumpRate } from "./interfaces/IJumpRate.sol";
 
 abstract contract JumpRate is IJumpRate {
-  uint256 public constant override kink = 0.8 ether;
+  uint256 public constant override kink = 0.6 ether;
 
   uint256 public constant override multiplier = 1.375 ether;
 
