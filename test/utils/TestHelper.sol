@@ -20,7 +20,7 @@ abstract contract TestHelper is Test, CallbackHelper {
   Factory public factory;
   Lendgine public lendgine;
 
-  address public cuh;
+  address public alice;
   address public dennis;
 
   function mkaddr(string memory name) public returns (address) {
@@ -30,7 +30,7 @@ abstract contract TestHelper is Test, CallbackHelper {
   }
 
   constructor() {
-    cuh = mkaddr("cuh");
+    alice = mkaddr("alice");
     dennis = mkaddr("dennis");
 
     token0Scale = 18;

@@ -16,12 +16,12 @@ contract MintTest is TestHelper {
   }
 
   function testMintPartial() external {
-    uint256 shares = _mint(cuh, cuh, 5 ether);
+    uint256 shares = _mint(alice, alice, 5 ether);
 
     // check lendgine token
     assertEq(0.5 ether, shares);
     assertEq(0.5 ether, lendgine.totalSupply());
-    assertEq(0.5 ether, lendgine.balanceOf(cuh));
+    assertEq(0.5 ether, lendgine.balanceOf(alice));
 
     // check lendgine storage slots
     assertEq(0.5 ether, lendgine.totalLiquidityBorrowed());
@@ -34,17 +34,17 @@ contract MintTest is TestHelper {
     assertEq(4 ether + 5 ether, token1.balanceOf(address(lendgine)));
 
     // check user balances
-    assertEq(0.5 ether, token0.balanceOf(cuh));
-    assertEq(4 ether, token1.balanceOf(cuh));
+    assertEq(0.5 ether, token0.balanceOf(alice));
+    assertEq(4 ether, token1.balanceOf(alice));
   }
 
   function testMintFull() external {
-    uint256 shares = _mint(cuh, cuh, 10 ether);
+    uint256 shares = _mint(alice, alice, 10 ether);
 
     // check lendgine token
     assertEq(1 ether, shares);
     assertEq(1 ether, lendgine.totalSupply());
-    assertEq(1 ether, lendgine.balanceOf(cuh));
+    assertEq(1 ether, lendgine.balanceOf(alice));
 
     // check lendgine storage slots
     assertEq(1 ether, lendgine.totalLiquidityBorrowed());
@@ -57,69 +57,69 @@ contract MintTest is TestHelper {
     assertEq(10 ether, token1.balanceOf(address(lendgine)));
 
     // check user balances
-    assertEq(1 ether, token0.balanceOf(cuh));
-    assertEq(8 ether, token1.balanceOf(cuh));
+    assertEq(1 ether, token0.balanceOf(alice));
+    assertEq(8 ether, token1.balanceOf(alice));
   }
 
   function testMintFullDouble() external {
-    _mint(cuh, cuh, 5 ether);
-    _mint(cuh, cuh, 5 ether);
+    _mint(alice, alice, 5 ether);
+    _mint(alice, alice, 5 ether);
   }
 
   function testZeroMint() external {
     vm.expectRevert(Lendgine.InputError.selector);
-    lendgine.mint(cuh, 0, bytes(""));
+    lendgine.mint(alice, 0, bytes(""));
   }
 
   function testOverMint() external {
     _mint(address(this), address(this), 5 ether);
 
     vm.expectRevert(Lendgine.CompleteUtilizationError.selector);
-    lendgine.mint(cuh, 5 ether + 10, bytes(""));
+    lendgine.mint(alice, 5 ether + 10, bytes(""));
   }
 
   function testEmitLendgine() external {
-    token1.mint(cuh, 5 ether);
+    token1.mint(alice, 5 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(this), 5 ether);
 
     vm.expectEmit(true, true, false, true, address(lendgine));
-    emit Mint(address(this), 5 ether, 0.5 ether, 0.5 ether, cuh);
-    lendgine.mint(cuh, 5 ether, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
+    emit Mint(address(this), 5 ether, 0.5 ether, 0.5 ether, alice);
+    lendgine.mint(alice, 5 ether, abi.encode(MintCallbackData({ token: address(token1), payer: alice })));
   }
 
   function testEmitPair() external {
-    token1.mint(cuh, 5 ether);
+    token1.mint(alice, 5 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(this), 5 ether);
 
     vm.expectEmit(true, false, false, true, address(lendgine));
-    emit Burn(0.5 ether, 4 ether, 0.5 ether, cuh);
-    lendgine.mint(cuh, 5 ether, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
+    emit Burn(0.5 ether, 4 ether, 0.5 ether, alice);
+    lendgine.mint(alice, 5 ether, abi.encode(MintCallbackData({ token: address(token1), payer: alice })));
   }
 
   function testAccrueOnMint() external {
-    _mint(cuh, cuh, 1 ether);
+    _mint(alice, alice, 1 ether);
     vm.warp(365 days + 1);
-    _mint(cuh, cuh, 1 ether);
+    _mint(alice, alice, 1 ether);
 
     assertEq(365 days + 1, lendgine.lastUpdate());
     assert(lendgine.rewardPerPositionStored() != 0);
   }
 
   function testProportionalMint() external {
-    _mint(cuh, cuh, 5 ether);
+    _mint(alice, alice, 5 ether);
     vm.warp(365 days + 1);
-    uint256 shares = _mint(cuh, cuh, 1 ether);
+    uint256 shares = _mint(alice, alice, 1 ether);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
     // check mint amount
     assertEq((0.1 ether * 0.5 ether) / (0.5 ether - lpDilution), shares);
-    assertEq(shares + 0.5 ether, lendgine.balanceOf(cuh));
+    assertEq(shares + 0.5 ether, lendgine.balanceOf(alice));
 
     // check lendgine storage slots
     assertEq(0.6 ether - lpDilution, lendgine.totalLiquidityBorrowed());
@@ -148,16 +148,16 @@ contract MintTest is TestHelper {
       )
     );
 
-    token1.mint(cuh, 5 * 1e9);
+    token1.mint(alice, 5 * 1e9);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(this), 5 * 1e9);
-    uint256 shares = lendgine.mint(cuh, 5 * 1e9, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
+    uint256 shares = lendgine.mint(alice, 5 * 1e9, abi.encode(MintCallbackData({ token: address(token1), payer: alice })));
 
     // check lendgine token
     assertEq(0.5 ether, shares);
     assertEq(0.5 ether, lendgine.totalSupply());
-    assertEq(0.5 ether, lendgine.balanceOf(cuh));
+    assertEq(0.5 ether, lendgine.balanceOf(alice));
 
     // check lendgine storage slots
     assertEq(0.5 ether, lendgine.totalLiquidityBorrowed());
@@ -170,8 +170,8 @@ contract MintTest is TestHelper {
     assertEq(9 * 1e9, token1.balanceOf(address(lendgine)));
 
     // check user balances
-    assertEq(0.5 ether, token0.balanceOf(cuh));
-    assertEq(4 * 1e9, token1.balanceOf(cuh));
+    assertEq(0.5 ether, token0.balanceOf(alice));
+    assertEq(4 * 1e9, token1.balanceOf(alice));
   }
 
   function testMintAfterFullAccrue() external {
@@ -179,6 +179,6 @@ contract MintTest is TestHelper {
     vm.warp(730 days + 1);
 
     vm.expectRevert(Lendgine.CompleteUtilizationError.selector);
-    lendgine.mint(cuh, 1 ether, bytes(""));
+    lendgine.mint(alice, 1 ether, bytes(""));
   }
 }

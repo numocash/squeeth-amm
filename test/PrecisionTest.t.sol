@@ -24,7 +24,7 @@ contract PrecisionTest is TestHelper {
     _setUp();
   }
 
-  function testBaseline() external {
+  function testBaseline() external view {
     lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
 
     uint256 value = (upperBound * upperBound) / 1e18;

@@ -14,11 +14,11 @@ contract WithdrawTest is TestHelper {
   function setUp() external {
     _setUp();
 
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
   }
 
   function testWithdrawPartial() external {
-    (uint256 amount0, uint256 amount1, uint256 liquidity) = _withdraw(cuh, cuh, 0.5 ether);
+    (uint256 amount0, uint256 amount1, uint256 liquidity) = _withdraw(alice, alice, 0.5 ether);
 
     assertEq(liquidity, 0.5 ether);
     assertEq(0.5 ether, amount0);
@@ -32,15 +32,15 @@ contract WithdrawTest is TestHelper {
     assertEq(0.5 ether, token0.balanceOf(address(lendgine)));
     assertEq(4 ether, token1.balanceOf(address(lendgine)));
 
-    assertEq(0.5 ether, token0.balanceOf(address(cuh)));
-    assertEq(4 ether, token1.balanceOf(address(cuh)));
+    assertEq(0.5 ether, token0.balanceOf(address(alice)));
+    assertEq(4 ether, token1.balanceOf(address(alice)));
 
-    (uint256 positionSize,,) = lendgine.positions(cuh);
+    (uint256 positionSize,,) = lendgine.positions(alice);
     assertEq(0.5 ether, positionSize);
   }
 
   function testWithdrawFull() external {
-    (uint256 amount0, uint256 amount1, uint256 liquidity) = _withdraw(cuh, cuh, 1 ether);
+    (uint256 amount0, uint256 amount1, uint256 liquidity) = _withdraw(alice, alice, 1 ether);
 
     assertEq(liquidity, 1 ether);
     assertEq(1 ether, amount0);
@@ -54,51 +54,51 @@ contract WithdrawTest is TestHelper {
     assertEq(0, token0.balanceOf(address(lendgine)));
     assertEq(0, token1.balanceOf(address(lendgine)));
 
-    assertEq(1 ether, token0.balanceOf(address(cuh)));
-    assertEq(8 ether, token1.balanceOf(address(cuh)));
+    assertEq(1 ether, token0.balanceOf(address(alice)));
+    assertEq(8 ether, token1.balanceOf(address(alice)));
 
-    (uint256 positionSize,,) = lendgine.positions(cuh);
+    (uint256 positionSize,,) = lendgine.positions(alice);
     assertEq(0, positionSize);
   }
 
   function testEmitLendgine() external {
     vm.expectEmit(true, true, false, true, address(lendgine));
-    emit Withdraw(cuh, 1 ether, 1 ether, cuh);
-    _withdraw(cuh, cuh, 1 ether);
+    emit Withdraw(alice, 1 ether, 1 ether, alice);
+    _withdraw(alice, alice, 1 ether);
   }
 
   function testEmitPair() external {
     vm.expectEmit(true, false, false, true, address(lendgine));
-    emit Burn(1 ether, 8 ether, 1 ether, cuh);
-    _withdraw(cuh, cuh, 1 ether);
+    emit Burn(1 ether, 8 ether, 1 ether, alice);
+    _withdraw(alice, alice, 1 ether);
   }
 
   function testZeroWithdraw() external {
     vm.expectRevert(Lendgine.InputError.selector);
-    _withdraw(cuh, cuh, 0);
+    _withdraw(alice, alice, 0);
   }
 
   function testOverWithdraw() external {
     vm.expectRevert(Lendgine.InsufficientPositionError.selector);
-    _withdraw(cuh, cuh, 2 ether);
+    _withdraw(alice, alice, 2 ether);
   }
 
   function testMaxUtilizedWithdraw() external {
     _mint(address(this), address(this), 5 ether);
-    _withdraw(cuh, cuh, 0.5 ether);
+    _withdraw(alice, alice, 0.5 ether);
   }
 
   function testCompleteUtilization() external {
     _mint(address(this), address(this), 5 ether);
 
     vm.expectRevert(Lendgine.CompleteUtilizationError.selector);
-    _withdraw(cuh, cuh, 0.5 ether + 1);
+    _withdraw(alice, alice, 0.5 ether + 1);
   }
 
   function testAccrueOnWithdraw() external {
     _mint(address(this), address(this), 1 ether);
     vm.warp(365 days + 1);
-    _withdraw(cuh, cuh, 0.5 ether);
+    _withdraw(alice, alice, 0.5 ether);
 
     assertEq(365 days + 1, lendgine.lastUpdate());
     assert(lendgine.rewardPerPositionStored() != 0);
@@ -107,9 +107,9 @@ contract WithdrawTest is TestHelper {
   function testAccrueOnPositionWithdraw() external {
     _mint(address(this), address(this), 1 ether);
     vm.warp(365 days + 1);
-    _withdraw(cuh, cuh, 0.5 ether);
+    _withdraw(alice, alice, 0.5 ether);
 
-    (, uint256 rewardPerPositionPaid, uint256 tokensOwed) = lendgine.positions(cuh);
+    (, uint256 rewardPerPositionPaid, uint256 tokensOwed) = lendgine.positions(alice);
     assert(rewardPerPositionPaid != 0);
     assert(tokensOwed != 0);
   }
@@ -132,7 +132,7 @@ contract WithdrawTest is TestHelper {
 
     _burn(address(this), address(this), 0.5 ether, _amount0, _amount1);
 
-    (,, uint256 liquidity) = _withdraw(cuh, cuh, 1 ether);
+    (,, uint256 liquidity) = _withdraw(alice, alice, 1 ether);
 
     // check liquidity
     assertEq(liquidity, 1 ether - lpDilution);

@@ -21,8 +21,8 @@ contract AccrueInterestTest is TestHelper {
   }
 
   function testAccrueNoTime() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
-    _mint(cuh, cuh, 5 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
+    _mint(alice, alice, 5 ether);
 
     lendgine.accrueInterest();
 
@@ -32,8 +32,8 @@ contract AccrueInterestTest is TestHelper {
   }
 
   function testAccrueInterest() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
-    _mint(cuh, cuh, 5 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
+    _mint(alice, alice, 5 ether);
 
     vm.warp(365 days + 1);
 
@@ -49,8 +49,8 @@ contract AccrueInterestTest is TestHelper {
   }
 
   function testMaxDilution() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
-    _mint(cuh, cuh, 5 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
+    _mint(alice, alice, 5 ether);
 
     vm.warp(730 days + 1);
 
@@ -62,8 +62,8 @@ contract AccrueInterestTest is TestHelper {
   }
 
   function testLendgineEmit() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
-    _mint(cuh, cuh, 5 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
+    _mint(alice, alice, 5 ether);
 
     vm.warp(365 days + 1);
 
@@ -98,11 +98,11 @@ contract AccrueInterestTest is TestHelper {
       )
     );
 
-    token1.mint(cuh, 5 * 1e9);
+    token1.mint(alice, 5 * 1e9);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(this), 5 * 1e9);
-    lendgine.mint(cuh, 5 * 1e9, abi.encode(MintCallbackData({ token: address(token1), payer: cuh })));
+    lendgine.mint(alice, 5 * 1e9, abi.encode(MintCallbackData({ token: address(token1), payer: alice })));
 
     vm.warp(365 days + 1);
 

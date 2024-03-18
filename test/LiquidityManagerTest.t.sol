@@ -68,7 +68,7 @@ contract LiquidityManagerTest is TestHelper {
   }
 
   function testAddPositionEmpty() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
     // test lendgine storage
     assertEq(lendgine.totalLiquidity(), 1 ether);
@@ -85,14 +85,14 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, token1.balanceOf(address(liquidityManager)));
 
     // test liquidity manager position
-    (positionSize,,) = liquidityManager.positions(cuh, address(lendgine));
+    (positionSize,,) = liquidityManager.positions(alice, address(lendgine));
     assertEq(1 ether, positionSize);
   }
 
   function testAddPosition() external {
     _deposit(address(this), address(this), 1 ether, 8 ether, 1 ether);
 
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
     // test lendgine storage
     assertEq(lendgine.totalLiquidity(), 2 ether);
@@ -109,7 +109,7 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, token1.balanceOf(address(liquidityManager)));
 
     // test liquidity manager position
-    (positionSize,,) = liquidityManager.positions(cuh, address(lendgine));
+    (positionSize,,) = liquidityManager.positions(alice, address(lendgine));
     assertEq(1 ether, positionSize);
   }
 
@@ -128,17 +128,17 @@ contract LiquidityManagerTest is TestHelper {
         amount0Min: 1 ether,
         amount1Min: 8 ether,
         sizeMin: 1 ether,
-        recipient: cuh,
+        recipient: alice,
         deadline: 1
       })
     );
   }
 
   function testAmountErrorAdd() external {
-    token0.mint(cuh, 1 ether);
-    token1.mint(cuh, 8 ether);
+    token0.mint(alice, 1 ether);
+    token1.mint(alice, 8 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(liquidityManager), 1 ether);
     token1.approve(address(liquidityManager), 8 ether);
 
@@ -154,7 +154,7 @@ contract LiquidityManagerTest is TestHelper {
         amount0Min: 1 ether,
         amount1Min: 8 ether,
         sizeMin: 1 ether + 1,
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
@@ -162,13 +162,13 @@ contract LiquidityManagerTest is TestHelper {
   }
 
   function testAccruePosition() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
     _mint(address(this), address(this), 5 ether);
 
     vm.warp(365 days + 1);
 
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
@@ -192,7 +192,7 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, token1.balanceOf(address(liquidityManager)));
 
     // test liquidity manager position
-    (positionSize, rewardPerPositionPaid, tokensOwed) = liquidityManager.positions(cuh, address(lendgine));
+    (positionSize, rewardPerPositionPaid, tokensOwed) = liquidityManager.positions(alice, address(lendgine));
     assertEq(size + 1 ether, positionSize);
     assertEq(10 * lpDilution, rewardPerPositionPaid);
     assertEq(10 * lpDilution, tokensOwed);
@@ -205,7 +205,7 @@ contract LiquidityManagerTest is TestHelper {
 
     vm.warp(365 days + 1);
 
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
@@ -227,7 +227,7 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, token1.balanceOf(address(liquidityManager)));
 
     // test liquidity manager position
-    (positionSize, rewardPerPositionPaid,) = liquidityManager.positions(cuh, address(lendgine));
+    (positionSize, rewardPerPositionPaid,) = liquidityManager.positions(alice, address(lendgine));
     assertEq(size, positionSize);
     assertEq(10 * lpDilution, rewardPerPositionPaid);
   }
@@ -252,15 +252,15 @@ contract LiquidityManagerTest is TestHelper {
   }
 
   function testEmitAdd() external {
-    token0.mint(cuh, 1 ether);
-    token1.mint(cuh, 8 ether);
+    token0.mint(alice, 1 ether);
+    token1.mint(alice, 8 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(liquidityManager), 1 ether);
     token1.approve(address(liquidityManager), 8 ether);
 
     vm.expectEmit(true, true, true, true, address(liquidityManager));
-    emit AddLiquidity(cuh, address(lendgine), 1 ether, 1 ether, 1 ether, 8 ether, cuh);
+    emit AddLiquidity(alice, address(lendgine), 1 ether, 1 ether, 1 ether, 8 ether, alice);
     liquidityManager.addLiquidity(
       LiquidityManager.AddLiquidityParams({
         token0: address(token0),
@@ -272,7 +272,7 @@ contract LiquidityManagerTest is TestHelper {
         amount0Min: 1 ether,
         amount1Min: 8 ether,
         sizeMin: 1 ether,
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
@@ -280,9 +280,9 @@ contract LiquidityManagerTest is TestHelper {
   }
 
   function testRemovePosition() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     liquidityManager.removeLiquidity(
       LiquidityManager.RemoveLiquidityParams({
         token0: address(token0),
@@ -293,7 +293,7 @@ contract LiquidityManagerTest is TestHelper {
         size: 1 ether,
         amount0Min: 1 ether,
         amount1Min: 8 ether,
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
@@ -313,14 +313,14 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, token1.balanceOf(address(liquidityManager)));
 
     // test liquidity manager position
-    (positionSize,,) = liquidityManager.positions(cuh, address(lendgine));
+    (positionSize,,) = liquidityManager.positions(alice, address(lendgine));
     assertEq(0, positionSize);
   }
 
   function testRemoveAmountError() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectRevert(LiquidityManager.AmountError.selector);
     liquidityManager.removeLiquidity(
       LiquidityManager.RemoveLiquidityParams({
@@ -332,16 +332,16 @@ contract LiquidityManagerTest is TestHelper {
         size: 1 ether,
         amount0Min: 1 ether + 1,
         amount1Min: 8 ether + 1,
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testRemoveNoRecipient() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     liquidityManager.removeLiquidity(
       LiquidityManager.RemoveLiquidityParams({
         token0: address(token0),
@@ -372,15 +372,15 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(8 ether, token1.balanceOf(address(liquidityManager)));
 
     // test liquidity manager position
-    (positionSize,,) = liquidityManager.positions(cuh, address(lendgine));
+    (positionSize,,) = liquidityManager.positions(alice, address(lendgine));
     assertEq(0, positionSize);
   }
 
   function testOverRemove() external {
     _addLiquidity(address(this), address(this), 1 ether, 8 ether, 1 ether);
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectRevert();
     liquidityManager.removeLiquidity(
       LiquidityManager.RemoveLiquidityParams({
@@ -399,11 +399,11 @@ contract LiquidityManagerTest is TestHelper {
   }
 
   function testEmitRemove() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectEmit(true, true, true, true, address(liquidityManager));
-    emit RemoveLiquidity(cuh, address(lendgine), 1 ether, 1 ether, 1 ether, 8 ether, cuh);
+    emit RemoveLiquidity(alice, address(lendgine), 1 ether, 1 ether, 1 ether, 8 ether, alice);
     liquidityManager.removeLiquidity(
       LiquidityManager.RemoveLiquidityParams({
         token0: address(token0),
@@ -414,18 +414,18 @@ contract LiquidityManagerTest is TestHelper {
         size: 1 ether,
         amount0Min: 1 ether,
         amount1Min: 8 ether,
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testRemoveAccrue() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
     vm.warp(365 days + 1);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     liquidityManager.removeLiquidity(
       LiquidityManager.RemoveLiquidityParams({
         token0: address(token0),
@@ -436,7 +436,7 @@ contract LiquidityManagerTest is TestHelper {
         size: 0.5 ether,
         amount0Min: 0,
         amount1Min: 0,
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
@@ -460,22 +460,22 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, token1.balanceOf(address(liquidityManager)));
 
     // test liquidity manager position
-    (positionSize, rewardPerPositionPaid,) = liquidityManager.positions(cuh, address(lendgine));
+    (positionSize, rewardPerPositionPaid,) = liquidityManager.positions(alice, address(lendgine));
     assertEq(0.5 ether, positionSize);
     assertEq(lpDilution * 10, rewardPerPositionPaid);
   }
 
   function testCollect() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
     vm.warp(365 days + 1);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
-    vm.prank(cuh);
+    vm.prank(alice);
     liquidityManager.collect(
-      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: cuh, amountRequested: lpDilution * 10 })
+      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: alice, amountRequested: lpDilution * 10 })
     );
 
     // test lendgine storage slots
@@ -487,25 +487,25 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, tokensOwed);
 
     // test liquidity manager position
-    (, rewardPerPositionPaid, tokensOwed) = liquidityManager.positions(cuh, address(lendgine));
+    (, rewardPerPositionPaid, tokensOwed) = liquidityManager.positions(alice, address(lendgine));
     assertEq(lpDilution * 10, rewardPerPositionPaid);
     assertEq(0, tokensOwed);
 
     // test user balances
-    assertEq(token1.balanceOf(cuh), lpDilution * 10);
+    assertEq(token1.balanceOf(alice), lpDilution * 10);
   }
 
   function testOverCollect() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
     vm.warp(365 days + 1);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
-    vm.prank(cuh);
+    vm.prank(alice);
     liquidityManager.collect(
-      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: cuh, amountRequested: 100 ether })
+      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: alice, amountRequested: 100 ether })
     );
 
     // test lendgine storage slots
@@ -517,23 +517,23 @@ contract LiquidityManagerTest is TestHelper {
     assertEq(0, tokensOwed);
 
     // test liquidity manager position
-    (, rewardPerPositionPaid, tokensOwed) = liquidityManager.positions(cuh, address(lendgine));
+    (, rewardPerPositionPaid, tokensOwed) = liquidityManager.positions(alice, address(lendgine));
     assertEq(lpDilution * 10, rewardPerPositionPaid);
     assertEq(0, tokensOwed);
 
     // test user balances
-    assertEq(token1.balanceOf(cuh), lpDilution * 10);
+    assertEq(token1.balanceOf(alice), lpDilution * 10);
   }
 
   function testCollectNoRecipient() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
     vm.warp(365 days + 1);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
-    vm.prank(cuh);
+    vm.prank(alice);
     liquidityManager.collect(
       LiquidityManager.CollectParams({
         lendgine: address(lendgine),
@@ -547,18 +547,18 @@ contract LiquidityManagerTest is TestHelper {
   }
 
   function testEmitCollect() external {
-    _addLiquidity(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _addLiquidity(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
     vm.warp(365 days + 1);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectEmit(true, true, true, true, address(liquidityManager));
-    emit Collect(cuh, address(lendgine), lpDilution * 10, cuh);
+    emit Collect(alice, address(lendgine), lpDilution * 10, alice);
     liquidityManager.collect(
-      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: cuh, amountRequested: lpDilution * 10 })
+      LiquidityManager.CollectParams({ lendgine: address(lendgine), recipient: alice, amountRequested: lpDilution * 10 })
     );
   }
 }

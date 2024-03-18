@@ -15,7 +15,7 @@ contract DepositTest is TestHelper {
   }
 
   function testBasicDeposit() external {
-    uint256 size = _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    uint256 size = _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
 
     // check lendgine storage slots
     assertEq(1 ether, lendgine.totalLiquidity());
@@ -29,12 +29,12 @@ contract DepositTest is TestHelper {
 
     // check position size
     assertEq(1 ether, size);
-    (uint256 positionSize,,) = lendgine.positions(cuh);
+    (uint256 positionSize,,) = lendgine.positions(alice);
     assertEq(1 ether, positionSize);
   }
 
   function testOverDeposit() external {
-    uint256 size = _deposit(cuh, cuh, 1 ether + 1, 8 ether + 1, 1 ether);
+    uint256 size = _deposit(alice, alice, 1 ether + 1, 8 ether + 1, 1 ether);
 
     // check lendgine storage slots
     assertEq(1 ether, lendgine.totalLiquidity());
@@ -48,27 +48,27 @@ contract DepositTest is TestHelper {
 
     // check position size
     assertEq(1 ether, size);
-    (uint256 positionSize,,) = lendgine.positions(cuh);
+    (uint256 positionSize,,) = lendgine.positions(alice);
     assertEq(1 ether, positionSize);
   }
 
   function testZeroMint() external {
     vm.expectRevert(Lendgine.InputError.selector);
-    lendgine.deposit(cuh, 0, bytes(""));
+    lendgine.deposit(alice, 0, bytes(""));
   }
 
   function testUnderPayment() external {
-    token0.mint(cuh, 1 ether);
-    token1.mint(cuh, 7 ether);
+    token0.mint(alice, 1 ether);
+    token1.mint(alice, 7 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(this), 1 ether);
     token1.approve(address(this), 7 ether);
     vm.stopPrank();
 
     vm.expectRevert(Pair.InvariantError.selector);
     lendgine.deposit(
-      cuh,
+      alice,
       1 ether,
       abi.encode(
         PairMintCallbackData({
@@ -76,25 +76,25 @@ contract DepositTest is TestHelper {
           token1: address(token1),
           amount0: 1 ether,
           amount1: 7 ether,
-          payer: cuh
+          payer: alice
         })
       )
     );
   }
 
   function testEmitLendgine() external {
-    token0.mint(cuh, 1 ether);
-    token1.mint(cuh, 8 ether);
+    token0.mint(alice, 1 ether);
+    token1.mint(alice, 8 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(this), 1 ether);
     token1.approve(address(this), 8 ether);
     vm.stopPrank();
 
     vm.expectEmit(true, true, false, true, address(lendgine));
-    emit Deposit(address(this), 1 ether, 1 ether, cuh);
+    emit Deposit(address(this), 1 ether, 1 ether, alice);
     lendgine.deposit(
-      cuh,
+      alice,
       1 ether,
       abi.encode(
         PairMintCallbackData({
@@ -102,17 +102,17 @@ contract DepositTest is TestHelper {
           token1: address(token1),
           amount0: 1 ether,
           amount1: 8 ether,
-          payer: cuh
+          payer: alice
         })
       )
     );
   }
 
   function testEmitPair() external {
-    token0.mint(cuh, 1 ether);
-    token1.mint(cuh, 8 ether);
+    token0.mint(alice, 1 ether);
+    token1.mint(alice, 8 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(this), 1 ether);
     token1.approve(address(this), 8 ether);
     vm.stopPrank();
@@ -120,7 +120,7 @@ contract DepositTest is TestHelper {
     vm.expectEmit(false, false, false, true, address(lendgine));
     emit Mint(1 ether, 8 ether, 1 ether);
     lendgine.deposit(
-      cuh,
+      alice,
       1 ether,
       abi.encode(
         PairMintCallbackData({
@@ -128,14 +128,14 @@ contract DepositTest is TestHelper {
           token1: address(token1),
           amount0: 1 ether,
           amount1: 8 ether,
-          payer: cuh
+          payer: alice
         })
       )
     );
   }
 
   function testAccrueOnDepositEmpty() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
 
     assertEq(1, lendgine.lastUpdate());
   }
@@ -146,21 +146,21 @@ contract DepositTest is TestHelper {
 
     vm.warp(365 days + 1);
 
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
 
     assertEq(365 days + 1, lendgine.lastUpdate());
     assert(lendgine.rewardPerPositionStored() != 0);
   }
 
   function testAccrueOnPositionDeposit() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
 
     vm.warp(365 days + 1);
 
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
 
-    (, uint256 rewardPerPositionPaid, uint256 tokensOwed) = lendgine.positions(cuh);
+    (, uint256 rewardPerPositionPaid, uint256 tokensOwed) = lendgine.positions(alice);
     assert(rewardPerPositionPaid != 0);
     assert(tokensOwed != 0);
   }
@@ -171,7 +171,7 @@ contract DepositTest is TestHelper {
 
     vm.warp(365 days + 1);
 
-    uint256 size = _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    uint256 size = _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
 
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
@@ -179,7 +179,7 @@ contract DepositTest is TestHelper {
     // check position size
     assertEq((1 ether * 1 ether) / (1 ether - lpDilution), size);
     assertApproxEqAbs(1 ether, (size * (2 ether - lpDilution)) / (1 ether + size), 1);
-    (uint256 positionSize,,) = lendgine.positions(cuh);
+    (uint256 positionSize,,) = lendgine.positions(alice);
     assertEq((1 ether * 1 ether) / (1 ether - lpDilution), positionSize);
 
     // check lendgine storage slots
@@ -226,11 +226,11 @@ contract DepositTest is TestHelper {
   }
 
   function testDepositAfterFullAccrue() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 10 ether);
     vm.warp(730 days + 1);
 
     vm.expectRevert(Lendgine.CompleteUtilizationError.selector);
-    lendgine.deposit(cuh, 1 ether, bytes(""));
+    lendgine.deposit(alice, 1 ether, bytes(""));
   }
 }

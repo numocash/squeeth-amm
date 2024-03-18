@@ -62,11 +62,11 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
     //////////////////////////////////////////////////////////////*/
 
   /*/////////////////////////////////////////////////////////////////////////////
-  //  The capped power-4 invariant is x + y * U >= (3y^(4/3) / 8L) + L * U^4   //
+  //  The capped power-4 invariant is x + y * U >= (3y^(4/3) / 8L) * U^4       //
   //  and is implemented in a + b >= c + d where:                              //
-  //  a = scale0 * 1e18 = (x / L) * 1e18                                       //
-  //  b = scale1 * upperBound = (y / L) * U                                    //
-  //  c = (scale1 * 4/3) * 3 / 8 = 3y^(4/3) / 8L                               //
+  //  a = scale0 * 1e18 = x * 1e18                                             //
+  //  b = scale1 * upperBound = y * U                                          //
+  //  c = (scale1 * 4/3) * 3 / 8 = 3y^(4/3) / 8                                //
   //  d = upperBound ** 4 = U^4                                                //
   /////////////////////////////////////////////////////////////////////////////*/
 
@@ -81,7 +81,7 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
 
     uint256 a = scale0 * 1e18;
     uint256 b = scale1 * upperBound;
-    uint256 c = (scale1 * 4/3) * 3 / 8;
+    uint256 c = (3 * scale1 * FullMath.mulDiv(scale1, scale1, 1e18)) / 8;
     uint256 d = upperBound ** 4;
 
     return a + b >= c + d;

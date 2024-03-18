@@ -55,16 +55,16 @@ contract LendgineRouterTest is TestHelper {
 
     // get tokens
     vm.prank(0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984);
-    token0.transfer(cuh, 100 ether);
+    token0.transfer(alice, 100 ether);
 
     vm.prank(0xb3A16C2B68BBB0111EbD27871a5934b949837D95);
-    token1.transfer(cuh, 100 ether);
+    token1.transfer(alice, 100 ether);
 
     // deploy lendgine
     lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), 18, 18, 3 ether));
 
     // deposit tokens
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(this), 5.40225 ether);
     token1.approve(address(this), 45.3 ether);
     vm.stopPrank();
@@ -79,19 +79,19 @@ contract LendgineRouterTest is TestHelper {
           token1: address(token1),
           amount0: 5.40225 ether,
           amount1: 45.3 ether,
-          payer: cuh
+          payer: alice
         })
       )
     );
   }
 
   function testMintNoBorrow() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -104,14 +104,14 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0.1 ether,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
     // check option amounts
     assertEq(0.1 ether, lendgine.totalSupply());
-    assertEq(0.1 ether, lendgine.balanceOf(cuh));
+    assertEq(0.1 ether, lendgine.balanceOf(alice));
 
     // check uniswap
     // swap 0.1 ether of token 0 to token 1
@@ -122,7 +122,7 @@ contract LendgineRouterTest is TestHelper {
     assertEq(0.1 ether, lendgine.totalLiquidityBorrowed());
 
     // check user balances
-    assertApproxEqRel(0.9 ether, token1.balanceOf(cuh), 1 ether);
+    assertApproxEqRel(0.9 ether, token1.balanceOf(alice), 1 ether);
 
     // check router token balances
     assertEq(0, token0.balanceOf(address(lendgineRouter)));
@@ -131,12 +131,12 @@ contract LendgineRouterTest is TestHelper {
   }
 
   function testMintBorrow() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -149,14 +149,14 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
     // check option amounts
     assertEq(0.98 ether, lendgine.totalSupply());
-    assertEq(0.98 ether, lendgine.balanceOf(cuh));
+    assertEq(0.98 ether, lendgine.balanceOf(alice));
 
     // check uniswap
     // swap 0.98 ether of token 0 to token 1
@@ -167,7 +167,7 @@ contract LendgineRouterTest is TestHelper {
     assertEq(0.98 ether, lendgine.totalLiquidityBorrowed());
 
     // check user balances
-    assertApproxEqRel(0, token1.balanceOf(cuh), 1 ether);
+    assertApproxEqRel(0, token1.balanceOf(alice), 1 ether);
 
     // check router token balances
     assertEq(0, token0.balanceOf(address(lendgineRouter)));
@@ -181,10 +181,10 @@ contract LendgineRouterTest is TestHelper {
     uint256 balance0Before = token0.balanceOf(address(uniswapV3Pool));
     uint256 balance1Before = token1.balanceOf(address(uniswapV3Pool));
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -197,14 +197,14 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0.2 ether,
         swapType: SwapHelper.SwapType.UniswapV3,
         swapExtraData: abi.encode(uint24(500)),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
     // check option amounts
     assertEq(0.2 ether, lendgine.totalSupply());
-    assertEq(0.2 ether, lendgine.balanceOf(cuh));
+    assertEq(0.2 ether, lendgine.balanceOf(alice));
 
     // check uniswap
     // swap (1.2 / 6) * .540 ether of token 0 to token 1
@@ -221,12 +221,12 @@ contract LendgineRouterTest is TestHelper {
   }
 
   function testAmountError() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectRevert(LendgineRouter.AmountError.selector);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
@@ -240,19 +240,19 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0.2 ether,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testUserAmountError() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectRevert(LendgineRouter.AmountError.selector);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
@@ -266,21 +266,21 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testMintEmit() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectEmit(true, true, true, true, address(lendgineRouter));
-    emit Mint(cuh, address(lendgine), 1 ether, 0.1 ether, cuh);
+    emit Mint(alice, address(lendgine), 1 ether, 0.1 ether, alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -293,19 +293,19 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0.1 ether,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testBurn() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -318,15 +318,15 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.approve(address(lendgineRouter), 0.98 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.burn(
       LendgineRouter.BurnParams({
         token0: address(token0),
@@ -340,13 +340,13 @@ contract LendgineRouterTest is TestHelper {
         amount1Min: 8 * 0.98 ether,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
     // check lendgine token
-    assertEq(0, lendgine.balanceOf(cuh));
+    assertEq(0, lendgine.balanceOf(alice));
     assertEq(0, lendgine.totalSupply());
 
     // check lendgine storage slots
@@ -357,7 +357,7 @@ contract LendgineRouterTest is TestHelper {
     assertApproxEqRel(100 ether, token1.balanceOf(address(uniswapV2Pair)), 0.001 ether);
 
     // check user balances
-    assertApproxEqRel(0.1 ether, token1.balanceOf(cuh), 1 ether);
+    assertApproxEqRel(0.1 ether, token1.balanceOf(alice), 1 ether);
 
     // check router token balances
     assertEq(0, token0.balanceOf(address(lendgineRouter)));
@@ -366,12 +366,12 @@ contract LendgineRouterTest is TestHelper {
   }
 
   function testBurnNoLiquidity() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -384,17 +384,17 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
     _withdraw(address(this), address(this), 99.9 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.approve(address(lendgineRouter), 0.1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.burn(
       LendgineRouter.BurnParams({
         token0: address(token0),
@@ -408,13 +408,13 @@ contract LendgineRouterTest is TestHelper {
         amount1Min: 0.8 ether,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
     // check lendgine token
-    assertEq(0, lendgine.balanceOf(cuh));
+    assertEq(0, lendgine.balanceOf(alice));
     assertEq(0, lendgine.totalSupply());
 
     // check lendgine storage slots
@@ -425,7 +425,7 @@ contract LendgineRouterTest is TestHelper {
     assertApproxEqRel(100 ether, token1.balanceOf(address(uniswapV2Pair)), 0.001 ether);
 
     // check user balances
-    assertApproxEqRel(0.1 ether, token1.balanceOf(cuh), 1 ether);
+    assertApproxEqRel(0.1 ether, token1.balanceOf(alice), 1 ether);
 
     // check router token balances
     assertEq(0, token0.balanceOf(address(lendgineRouter)));
@@ -439,12 +439,12 @@ contract LendgineRouterTest is TestHelper {
     uint256 balance0Before = token0.balanceOf(address(uniswapV3Pool));
     uint256 balance1Before = token1.balanceOf(address(uniswapV3Pool));
 
-    uint256 userBalanceBefore = token1.balanceOf(cuh);
+    uint256 userBalanceBefore = token1.balanceOf(alice);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -457,15 +457,15 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0.2 ether,
         swapType: SwapHelper.SwapType.UniswapV3,
         swapExtraData: abi.encode(uint24(500)),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.approve(address(lendgineRouter), 0.2 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.burn(
       LendgineRouter.BurnParams({
         token0: address(token0),
@@ -479,13 +479,13 @@ contract LendgineRouterTest is TestHelper {
         amount1Min: 0,
         swapType: SwapHelper.SwapType.UniswapV3,
         swapExtraData: abi.encode(uint24(500)),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
     // check lendgine token
-    assertEq(0, lendgine.balanceOf(cuh));
+    assertEq(0, lendgine.balanceOf(alice));
     assertEq(0, lendgine.totalSupply());
 
     // check lendgine storage slots
@@ -496,7 +496,7 @@ contract LendgineRouterTest is TestHelper {
     assertApproxEqRel(balance1Before, token1.balanceOf(address(uniswapV3Pool)), 0.001 ether);
 
     // check user balance
-    assertApproxEqRel(userBalanceBefore, token1.balanceOf(cuh), 0.001 ether);
+    assertApproxEqRel(userBalanceBefore, token1.balanceOf(alice), 0.001 ether);
 
     // check router token balances
     assertEq(0, token0.balanceOf(address(lendgineRouter)));
@@ -505,12 +505,12 @@ contract LendgineRouterTest is TestHelper {
   }
 
   function testBurnEmit() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -523,17 +523,17 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.approve(address(lendgineRouter), 0.98 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectEmit(true, true, true, true, address(lendgineRouter));
-    emit Burn(cuh, address(lendgine), 9.8 ether, 0.98 ether, cuh);
+    emit Burn(alice, address(lendgine), 9.8 ether, 0.98 ether, alice);
     lendgineRouter.burn(
       LendgineRouter.BurnParams({
         token0: address(token0),
@@ -547,19 +547,19 @@ contract LendgineRouterTest is TestHelper {
         amount1Min: 8 * 0.98 ether,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testBurnAmountError() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -572,15 +572,15 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.approve(address(lendgineRouter), 0.98 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectRevert(LendgineRouter.AmountError.selector);
     lendgineRouter.burn(
       LendgineRouter.BurnParams({
@@ -595,19 +595,19 @@ contract LendgineRouterTest is TestHelper {
         amount1Min: 8 * 0.98 ether + 1,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testBurnUserAmountError() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -620,15 +620,15 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.approve(address(lendgineRouter), 0.98 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectRevert(LendgineRouter.AmountError.selector);
     lendgineRouter.burn(
       LendgineRouter.BurnParams({
@@ -643,19 +643,19 @@ contract LendgineRouterTest is TestHelper {
         amount1Min: 8 * 0.98 ether,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
   }
 
   function testBurnNoRecipient() external {
-    token1.mint(cuh, 1 ether);
+    token1.mint(alice, 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     token1.approve(address(lendgineRouter), 1 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.mint(
       LendgineRouter.MintParams({
         token0: address(token0),
@@ -668,17 +668,17 @@ contract LendgineRouterTest is TestHelper {
         sharesMin: 0,
         swapType: SwapHelper.SwapType.UniswapV2,
         swapExtraData: bytes(""),
-        recipient: cuh,
+        recipient: alice,
         deadline: block.timestamp
       })
     );
 
-    uint256 balanceBefore = token1.balanceOf(address(cuh));
+    uint256 balanceBefore = token1.balanceOf(address(alice));
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.approve(address(lendgineRouter), 0.98 ether);
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgineRouter.burn(
       LendgineRouter.BurnParams({
         token0: address(token0),
@@ -698,7 +698,7 @@ contract LendgineRouterTest is TestHelper {
     );
 
     // check lendgine token
-    assertEq(0, lendgine.balanceOf(cuh));
+    assertEq(0, lendgine.balanceOf(alice));
     assertEq(0, lendgine.totalSupply());
 
     // check lendgine storage slots
@@ -709,7 +709,7 @@ contract LendgineRouterTest is TestHelper {
     assertApproxEqRel(100 ether, token1.balanceOf(address(uniswapV2Pair)), 0.001 ether);
 
     // check user balances
-    assertEq(balanceBefore, token1.balanceOf(address(cuh)));
+    assertEq(balanceBefore, token1.balanceOf(address(alice)));
 
     // check router token balances
     assertEq(0, token0.balanceOf(address(lendgineRouter)));

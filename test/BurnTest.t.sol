@@ -14,20 +14,20 @@ contract BurnTest is TestHelper {
   function setUp() external {
     _setUp();
     _deposit(address(this), address(this), 1 ether, 8 ether, 1 ether);
-    _mint(cuh, cuh, 5 ether);
+    _mint(alice, alice, 5 ether);
   }
 
   function testBurnPartial() external {
-    uint256 collateral = _burn(cuh, cuh, 0.25 ether, 0.25 ether, 2 ether);
+    uint256 collateral = _burn(alice, alice, 0.25 ether, 0.25 ether, 2 ether);
 
     // check returned tokens
     assertEq(2.5 ether, collateral);
-    assertEq(0.25 ether, token0.balanceOf(cuh));
-    assertEq(2 ether + 2.5 ether, token1.balanceOf(cuh));
+    assertEq(0.25 ether, token0.balanceOf(alice));
+    assertEq(2 ether + 2.5 ether, token1.balanceOf(alice));
 
     // check lendgine token
     assertEq(0.25 ether, lendgine.totalSupply());
-    assertEq(0.25 ether, lendgine.balanceOf(cuh));
+    assertEq(0.25 ether, lendgine.balanceOf(alice));
 
     // check storage slots
     assertEq(0.25 ether, lendgine.totalLiquidityBorrowed());
@@ -41,16 +41,16 @@ contract BurnTest is TestHelper {
   }
 
   function testBurnFull() external {
-    uint256 collateral = _burn(cuh, cuh, 0.5 ether, 0.5 ether, 4 ether);
+    uint256 collateral = _burn(alice, alice, 0.5 ether, 0.5 ether, 4 ether);
 
     // check returned tokens
     assertEq(5 ether, collateral);
-    assertEq(0 ether, token0.balanceOf(cuh));
-    assertEq(5 ether, token1.balanceOf(cuh));
+    assertEq(0 ether, token0.balanceOf(alice));
+    assertEq(5 ether, token1.balanceOf(alice));
 
     // check lendgine token
     assertEq(0 ether, lendgine.totalSupply());
-    assertEq(0 ether, lendgine.balanceOf(cuh));
+    assertEq(0 ether, lendgine.balanceOf(alice));
 
     // check storage slots
     assertEq(0 ether, lendgine.totalLiquidityBorrowed());
@@ -65,63 +65,63 @@ contract BurnTest is TestHelper {
 
   function testZeroBurn() external {
     vm.expectRevert(Lendgine.InputError.selector);
-    lendgine.burn(cuh, bytes(""));
+    lendgine.burn(alice, bytes(""));
   }
 
   function testUnderPay() external {
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.transfer(address(lendgine), 0.5 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(this), 0.5 ether);
     token1.approve(address(this), 3 ether);
     vm.stopPrank();
 
     vm.expectRevert(Pair.InvariantError.selector);
     lendgine.burn(
-      cuh,
+      alice,
       abi.encode(
         PairMintCallbackData({
           token0: address(token0),
           token1: address(token1),
           amount0: 0.5 ether,
           amount1: 3 ether,
-          payer: cuh
+          payer: alice
         })
       )
     );
   }
 
   function testEmitLendgine() external {
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.transfer(address(lendgine), 0.5 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(this), 0.5 ether);
     token1.approve(address(this), 4 ether);
     vm.stopPrank();
 
     vm.expectEmit(true, true, false, true, address(lendgine));
-    emit Burn(address(this), 5 ether, 0.5 ether, 0.5 ether, cuh);
+    emit Burn(address(this), 5 ether, 0.5 ether, 0.5 ether, alice);
     lendgine.burn(
-      cuh,
+      alice,
       abi.encode(
         PairMintCallbackData({
           token0: address(token0),
           token1: address(token1),
           amount0: 0.5 ether,
           amount1: 4 ether,
-          payer: cuh
+          payer: alice
         })
       )
     );
   }
 
   function testEmitPair() external {
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.transfer(address(lendgine), 0.5 ether);
 
-    vm.startPrank(cuh);
+    vm.startPrank(alice);
     token0.approve(address(this), 0.5 ether);
     token1.approve(address(this), 4 ether);
     vm.stopPrank();
@@ -129,14 +129,14 @@ contract BurnTest is TestHelper {
     vm.expectEmit(false, false, false, true, address(lendgine));
     emit Mint(0.5 ether, 4 ether, 0.5 ether);
     lendgine.burn(
-      cuh,
+      alice,
       abi.encode(
         PairMintCallbackData({
           token0: address(token0),
           token1: address(token1),
           amount0: 0.5 ether,
           amount1: 4 ether,
-          payer: cuh
+          payer: alice
         })
       )
     );
@@ -154,7 +154,7 @@ contract BurnTest is TestHelper {
     uint256 amount1 =
       FullMath.mulDivRoundingUp(reserve1, lendgine.convertShareToLiquidity(0.5 ether), lendgine.totalLiquidity());
 
-    _burn(cuh, cuh, 0.5 ether, amount0, amount1);
+    _burn(alice, alice, 0.5 ether, amount0, amount1);
 
     assertEq(365 days + 1, lendgine.lastUpdate());
     assert(lendgine.rewardPerPositionStored() != 0);
@@ -176,7 +176,7 @@ contract BurnTest is TestHelper {
     uint256 amount1 =
       FullMath.mulDivRoundingUp(reserve1, lendgine.convertShareToLiquidity(shares), lendgine.totalLiquidity());
 
-    uint256 collateral = _burn(cuh, cuh, shares, amount0, amount1);
+    uint256 collateral = _burn(alice, alice, shares, amount0, amount1);
 
     // check collateral returned
     assertEq(5 * (0.5 ether - lpDilution), collateral); // withdrew half the collateral

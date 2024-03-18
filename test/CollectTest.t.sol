@@ -13,15 +13,15 @@ contract CollectTest is TestHelper {
   }
 
   function testZeroCollect() external {
-    uint256 collateral = lendgine.collect(cuh, 0);
+    uint256 collateral = lendgine.collect(alice, 0);
     assertEq(0, collateral);
 
-    collateral = lendgine.collect(cuh, 1 ether);
+    collateral = lendgine.collect(alice, 1 ether);
     assertEq(0, collateral);
   }
 
   function testCollectBasic() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
 
     vm.warp(365 days + 1);
@@ -29,25 +29,25 @@ contract CollectTest is TestHelper {
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.accruePositionInterest();
 
-    vm.prank(cuh);
-    uint256 collateral = lendgine.collect(cuh, lpDilution * 5);
+    vm.prank(alice);
+    uint256 collateral = lendgine.collect(alice, lpDilution * 5);
 
     // check return data
     assertEq(lpDilution * 5, collateral);
 
     // check position
-    (,, uint256 tokensOwed) = lendgine.positions(cuh);
+    (,, uint256 tokensOwed) = lendgine.positions(alice);
     assertEq(lpDilution * 5, tokensOwed);
 
     // check token balances
-    assertEq(lpDilution * 5, token1.balanceOf(cuh));
+    assertEq(lpDilution * 5, token1.balanceOf(alice));
   }
 
   function testOverCollect() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
 
     vm.warp(365 days + 1);
@@ -55,25 +55,25 @@ contract CollectTest is TestHelper {
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.accruePositionInterest();
 
-    vm.prank(cuh);
-    uint256 collateral = lendgine.collect(cuh, 100 ether);
+    vm.prank(alice);
+    uint256 collateral = lendgine.collect(alice, 100 ether);
 
     // check return data
     assertEq(lpDilution * 10, collateral);
 
     // check position
-    (,, uint256 tokensOwed) = lendgine.positions(cuh);
+    (,, uint256 tokensOwed) = lendgine.positions(alice);
     assertEq(0, tokensOwed);
 
     // check token balances
-    assertEq(lpDilution * 10, token1.balanceOf(cuh));
+    assertEq(lpDilution * 10, token1.balanceOf(alice));
   }
 
   function testEmit() external {
-    _deposit(cuh, cuh, 1 ether, 8 ether, 1 ether);
+    _deposit(alice, alice, 1 ether, 8 ether, 1 ether);
     _mint(address(this), address(this), 5 ether);
 
     vm.warp(365 days + 1);
@@ -81,12 +81,12 @@ contract CollectTest is TestHelper {
     uint256 borrowRate = lendgine.getBorrowRate(0.5 ether, 1 ether);
     uint256 lpDilution = borrowRate / 2; // 0.5 lp for one year
 
-    vm.prank(cuh);
+    vm.prank(alice);
     lendgine.accruePositionInterest();
 
-    vm.prank(cuh);
+    vm.prank(alice);
     vm.expectEmit(true, true, false, true, address(lendgine));
-    emit Collect(cuh, cuh, lpDilution * 10);
-    lendgine.collect(cuh, lpDilution * 10);
+    emit Collect(alice, alice, lpDilution * 10);
+    lendgine.collect(alice, lpDilution * 10);
   }
 }
