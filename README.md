@@ -5,8 +5,9 @@ Smart contracts suite of PowerMaker, an automated market maker of second order p
 
 ## Installation
 
+
 ```bash
-forge install
+forge install numoen/powermaker
 ```
 
 ## Local development
@@ -17,6 +18,14 @@ This project uses [Foundry](https://github.com/foundry-rs/foundry) as the develo
 
 ```bash
 forge install
+```
+
+```bash
+npm install @openzeppelin/contracts
+```
+
+```bash
+npm install create3-factory
 ```
 
 ### Compilation

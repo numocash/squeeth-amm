@@ -16,7 +16,7 @@ import { SafeCast } from "../libraries/SafeCast.sol";
 import { SafeTransferLib } from "../libraries/SafeTransferLib.sol";
 
 /// @notice Contract for automatically entering and exiting option positions
-/// @author Kyle Scott (kyle@numoen.com)
+/// @author Kyle Scott and Robert Leifke
 contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCallback, IPairMintCallback {
   /*//////////////////////////////////////////////////////////////
                                  EVENTS

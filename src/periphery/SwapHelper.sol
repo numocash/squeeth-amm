@@ -11,7 +11,7 @@ import { TickMath } from "./UniswapV3/libraries/TickMath.sol";
 import { UniswapV2Library } from "./UniswapV2/libraries/UniswapV2Library.sol";
 
 /// @notice Allows for swapping on Uniswap V2 or V3
-/// @author Kyle Scott (kyle@numoen.com)
+/// @author Kyle Scott and Robert Leifke
 abstract contract SwapHelper is IUniswapV3SwapCallback {
   /*//////////////////////////////////////////////////////////////
                                 STORAGE

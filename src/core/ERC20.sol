@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 /// @notice Modern and gas efficient ERC20 + EIP-2612 implementation.
-/// @author Kyle Scott (kyle@numoen.com)
+/// @author Kyle Scott and Robert Leifke
 /// @author Modified from Solmate v6
 /// (https://github.com/transmissions11/solmate/blob/a9e3ea26a2dc73bfa87f0cb189687d029028e0c5/src/tokens/ERC20.sol)
 /// and Uniswap (https://github.com/Uniswap/uniswap-v2-core/blob/master/contracts/UniswapV2ERC20.sol)
@@ -20,9 +20,9 @@ abstract contract ERC20 {
                              METADATA STORAGE
     //////////////////////////////////////////////////////////////*/
 
-  string public constant name = "Numoen Replicating Derivative";
+  string public constant name = "Numo Power Perpetual";
 
-  string public constant symbol = "NRD";
+  string public constant symbol = "NPP";
 
   uint8 public constant decimals = 18;
 

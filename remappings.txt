@@ -1,5 +1,2 @@
-@prb/test/=lib/prb-test/src/
-prb-math/=lib/prb-math/contracts/
 forge-std/=lib/forge-std/src/
-src/=src/
 create3-factory/=lib/create3-factory/src/

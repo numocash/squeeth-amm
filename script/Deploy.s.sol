@@ -13,26 +13,34 @@ import { LendgineRouter } from "src/periphery/LendgineRouter.sol";
 contract Deploy is Script {
   address constant create3Factory = 0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1;
 
-  address constant uniV2Factory = 0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32;
-  address constant uniV3Factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+  //Sepolia
+  address constant uniV2Factory = 0xB7f907f7A9eBC822a80BD25E224be42Ce0A698A0;
+  address constant uniV3Factory = 0x0227628f3F023bb0B980b67D528571c95c6DaC1c;
 
-  address constant weth = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+  //Uniswap deployed WETH
+  address constant weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
 
   function run() external returns (address factory, address liquidityManager, address lendgineRouter) {
-    CREATE3Factory create3 = CREATE3Factory(create3Factory);
+    // CREATE3Factory create3 = CREATE3Factory(create3Factory);
 
     uint256 pk = vm.envUint("PRIVATE_KEY");
     vm.startBroadcast(pk);
 
-    factory = create3.deploy(keccak256("NumoenFactory"), type(Factory).creationCode);
+    factory = address(new Factory());
 
-    liquidityManager = create3.deploy(
-      keccak256("NumoenLiquidityManager"), bytes.concat(type(LiquidityManager).creationCode, abi.encode(factory, weth))
-    );
+    liquidityManager = address(new LiquidityManager(factory, weth));
 
-    lendgineRouter = create3.deploy(
-      keccak256("NumoenLendgineRouter"),
-      bytes.concat(type(LendgineRouter).creationCode, abi.encode(factory, uniV2Factory, uniV3Factory, weth))
-    );
+    lendgineRouter = address(new LendgineRouter(factory, uniV2Factory, uniV3Factory, weth));
+
+    // factory = create3.deploy(keccak256("NumoFactory"), type(Factory).creationCode);
+
+    // liquidityManager = create3.deploy(
+    //   keccak256("NumoLiquidityManager"), bytes.concat(type(LiquidityManager).creationCode, abi.encode(factory, weth))
+    // );
+
+    // lendgineRouter = create3.deploy(
+    //   keccak256("NumoLendgineRouter"),
+    //   bytes.concat(type(LendgineRouter).creationCode, abi.encode(factory, uniV2Factory, uniV3Factory, weth))
+    // );
   }
 }
