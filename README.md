@@ -1,14 +1,8 @@
-# ⚡ PowerMaker
+# ⚡ PowerMaker2
 
-Smart contracts suite of PowerMaker, an automated market maker of second order power perpetuals on Ethereum. 
+![banner](images/Banner.png)
 
-
-## Installation
-
-
-```bash
-forge install numoen/powermaker
-```
+Smart contracts suite of PowerMaker2, an automated market maker implementaion of the capped power-4 invariant for replicating power perpetuals raised to the fourth power on the EVM.
 
 ## Local development
 
