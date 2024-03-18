@@ -1,17 +1,13 @@
 # ⚡ PowerMaker
 
-Smart contracts suite of PowerMaker, an automated market maker of power perpetuals on Ethereum. 
+Smart contracts suite of PowerMaker, an automated market maker of second order power perpetuals on Ethereum. 
+
 
 ## Installation
 
-To install with [Foundry](https://github.com/foundry-rs/foundry):
-
-<!-- ```bash
-forge install numoen/pmmp
-``` -->
 
 ```bash
-forge install numo/powermaker
+forge install numoen/powermaker
 ```
 
 ## Local development
