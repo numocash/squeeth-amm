@@ -7,16 +7,16 @@ License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved.
 
 Parameters
 
-Licensor:             Dahlia Finance Inc. "Numo"
+Licensor:             Dahlia Finance Inc. "Numoen"
 
-Licensed Work:        Numo
+Licensed Work:        Numoen
                       The Licensed Work is (c) 2024 Dahlia Finance Inc.
 
 Additional Use Grant: Any uses listed and defined at
-                      license.numotrade.com
+                      license.numoen.com
 
 Change Date:          The earlier of 2028-01-01 or a date specified at
-                      license.numotrade.com
+                      license.numoen.com
 
 Change License:       GNU General Public License v2.0 or later
 

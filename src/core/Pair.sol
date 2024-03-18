@@ -49,6 +49,15 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
                               PAIR LOGIC
     //////////////////////////////////////////////////////////////*/
 
+  /*/////////////////////////////////////////////////////////////////////////
+  The capped power-4 invariant is x + y * U >= (3y^(4/3) / 8L) + L * U^4   //
+  and is implemented in a + b >= c + d where:                              //
+  a = scale0 * 1e18 = (x / L) * 1e18                                       //
+  b = scale1 * upperBound = (y / L) * U                                    //
+  c = (scale1 * 4/3) * 3 / 8 = 3y^(4/3) / 8L                                //
+  d = upperBound ** 4 = U^4                                                //
+  /////////////////////////////////////////////////////////////////////////*/
+
   /// @inheritdoc IPair
   function invariant(uint256 amount0, uint256 amount1, uint256 liquidity) public view override returns (bool) {
     if (liquidity == 0) return (amount0 == 0 && amount1 == 0);
@@ -60,8 +69,8 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
 
     uint256 a = scale0 * 1e18;
     uint256 b = scale1 * upperBound;
-    uint256 c = (scale1 * scale1) / 4;
-    uint256 d = upperBound * upperBound;
+    uint256 c = (scale1 * 4/3) * 3 / 8;
+    uint256 d = upperBound ** 4;
 
     return a + b >= c + d;
   }

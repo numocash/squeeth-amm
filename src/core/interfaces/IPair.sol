@@ -15,6 +15,12 @@ interface IPair is IImmutableState {
   /// @notice The total amount of liquidity shares in the pair
   function totalLiquidity() external view returns (uint256);
 
+  // /// @notice The swap fee 
+  // function swapFee() external view returns (uint256);
+
+  // /// @notice The protocol fee
+  // function protocolFee() external view returns (uint256);
+
   /// @notice The implementation of the capped power invariant
   /// @return valid True if the invariant is satisfied
   function invariant(uint256 amount0, uint256 amount1, uint256 liquidity) external view returns (bool);
