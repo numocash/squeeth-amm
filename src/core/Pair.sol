@@ -46,17 +46,29 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
   uint256 public override totalLiquidity;
 
   /*//////////////////////////////////////////////////////////////
+                            SWAP FEE STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    uint256 private constant FEE_DENOMINATOR = 1e6;
+    uint256 private constant SWAP_FEE_VALUE = 3000; // 30 bps (3000/1e6)
+
+    /// @inheritdoc IPair
+    function swapFee() external pure override returns (uint256) {
+        return SWAP_FEE_VALUE;
+    }
+
+  /*//////////////////////////////////////////////////////////////
                               PAIR LOGIC
     //////////////////////////////////////////////////////////////*/
 
-  /*/////////////////////////////////////////////////////////////////////////
-  The capped power-4 invariant is x + y * U >= (3y^(4/3) / 8L) + L * U^4   //
-  and is implemented in a + b >= c + d where:                              //
-  a = scale0 * 1e18 = (x / L) * 1e18                                       //
-  b = scale1 * upperBound = (y / L) * U                                    //
-  c = (scale1 * 4/3) * 3 / 8 = 3y^(4/3) / 8L                                //
-  d = upperBound ** 4 = U^4                                                //
-  /////////////////////////////////////////////////////////////////////////*/
+  /*/////////////////////////////////////////////////////////////////////////////
+  //  The capped power-4 invariant is x + y * U >= (3y^(4/3) / 8L) + L * U^4   //
+  //  and is implemented in a + b >= c + d where:                              //
+  //  a = scale0 * 1e18 = (x / L) * 1e18                                       //
+  //  b = scale1 * upperBound = (y / L) * U                                    //
+  //  c = (scale1 * 4/3) * 3 / 8 = 3y^(4/3) / 8L                               //
+  //  d = upperBound ** 4 = U^4                                                //
+  /////////////////////////////////////////////////////////////////////////////*/
 
   /// @inheritdoc IPair
   function invariant(uint256 amount0, uint256 amount1, uint256 liquidity) public view override returns (bool) {
@@ -136,6 +148,14 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
     ISwapCallback(msg.sender).swapCallback(amount0Out, amount1Out, data);
     uint256 amount0In = Balance.balance(token0) - balance0Before;
     uint256 amount1In = Balance.balance(token1) - balance1Before;
+
+    // Calculate the swap fee amounts
+    uint256 fee0 = FullMath.mulDiv(amount0In, SWAP_FEE_VALUE, FEE_DENOMINATOR);
+    uint256 fee1 = FullMath.mulDiv(amount1In, SWAP_FEE_VALUE, FEE_DENOMINATOR);
+
+    // Adjust the input amounts by subtracting the swap fees
+    amount0In -= fee0;
+    amount1In -= fee1;
 
     if (!invariant(_reserve0 + amount0In - amount0Out, _reserve1 + amount1In - amount1Out, totalLiquidity)) {
       revert InvariantError();

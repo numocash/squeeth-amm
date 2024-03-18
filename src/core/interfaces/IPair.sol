@@ -15,8 +15,8 @@ interface IPair is IImmutableState {
   /// @notice The total amount of liquidity shares in the pair
   function totalLiquidity() external view returns (uint256);
 
-  // /// @notice The swap fee 
-  // function swapFee() external view returns (uint256);
+  /// @notice The swap fee 
+  function swapFee() external view returns (uint256);
 
   // /// @notice The protocol fee
   // function protocolFee() external view returns (uint256);
