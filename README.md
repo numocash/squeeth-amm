@@ -7,7 +7,7 @@ Smart contracts suite of PowerMaker, an automated market maker of second order p
 
 
 ```bash
-forge install numoen/powermaker
+forge install numoen/pmmp
 ```
 
 ## Local development
