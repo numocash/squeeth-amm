@@ -1,7 +1,8 @@
-# ⚡ PowerMaker
+# ⚡ Numo
 
-Smart contracts suite of PowerMaker, an automated market maker of second order power perpetuals on Ethereum. 
+### Access squared leverage on any token.
 
+Smart contracts suite of Numo, an automated market maker that replicates that payoff of a power perpetual on the EVM. 
 
 ## Installation
 
