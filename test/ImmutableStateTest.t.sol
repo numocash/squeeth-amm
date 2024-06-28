@@ -19,6 +19,6 @@ contract ImmutableStateTest is Test {
     assertEq(address(2), lendgine.token1());
     assertEq(1, lendgine.token0Scale());
     assertEq(1, lendgine.token1Scale());
-    assertEq(1e18, lendgine.upperBound());
+    assertEq(1e18, lendgine.strike());
   }
 }

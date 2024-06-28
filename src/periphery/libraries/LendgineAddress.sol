@@ -12,7 +12,7 @@ library LendgineAddress {
     address token1,
     uint256 token0Exp,
     uint256 token1Exp,
-    uint256 upperBound
+    uint256 strike
   )
     internal
     pure
@@ -25,7 +25,7 @@ library LendgineAddress {
             abi.encodePacked(
               hex"ff",
               factory,
-              keccak256(abi.encode(token0, token1, token0Exp, token1Exp, upperBound)),
+              keccak256(abi.encode(token0, token1, token0Exp, token1Exp, strike)),
               keccak256(type(Lendgine).creationCode)
             )
           )

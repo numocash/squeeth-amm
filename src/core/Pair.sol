@@ -61,15 +61,6 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
                               PAIR LOGIC
     //////////////////////////////////////////////////////////////*/
 
-  /*/////////////////////////////////////////////////////////////////////////////
-  //  The capped power-4 invariant is x + y * U >= (3y^(4/3) / 8L) * U^4       //
-  //  and is implemented in a + b >= c + d where:                              //
-  //  a = scale0 * 1e18 = x * 1e18                                             //
-  //  b = scale1 * upperBound = y * U                                          //
-  //  c = (scale1 * 4/3) * 3 / 8 = 3y^(4/3) / 8                                //
-  //  d = upperBound ** 4 = U^4                                                //
-  /////////////////////////////////////////////////////////////////////////////*/
-
   /// @inheritdoc IPair
   function invariant(uint256 amount0, uint256 amount1, uint256 liquidity) public view override returns (bool) {
     if (liquidity == 0) return (amount0 == 0 && amount1 == 0);
@@ -77,15 +68,14 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
     uint256 scale0 = FullMath.mulDiv(amount0 * token0Scale, 1e18, liquidity);
     uint256 scale1 = FullMath.mulDiv(amount1 * token1Scale, 1e18, liquidity);
 
-    if (scale1 > 2 * upperBound) revert InvariantError();
+    if (scale1 > 2 * strike) revert InvariantError();
 
-    uint256 a = scale0 * 1e18;
-    uint256 b = scale1 * upperBound;
-    uint256 c = (3 * scale1 * FullMath.mulDiv(scale1, scale1, 1e18)) / 8;
-    uint256 d = upperBound ** 4;
+    // Calculate lhs and rhs
+    uint256 lhs = scale0 * 1e18 + scale1 * strike;
+    uint256 rhs = (scale1 * scale1) / 4 + strike * strike;
 
-    return a + b >= c + d;
-  }
+    return lhs >= rhs;
+  } 
 
   /// @dev assumes liquidity is non-zero
   function mint(uint256 liquidity, bytes calldata data) internal {
@@ -167,3 +157,4 @@ abstract contract Pair is ImmutableState, ReentrancyGuard, IPair {
     emit Swap(amount0Out, amount1Out, amount0In, amount1In, to);
   }
 }
+

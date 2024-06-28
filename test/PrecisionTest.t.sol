@@ -25,9 +25,9 @@ contract PrecisionTest is TestHelper {
   }
 
   function testBaseline() external view {
-    lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
+    lendgine.invariant((strike * strike) / 1e18, 0, 1 ether);
 
-    uint256 value = (upperBound * upperBound) / 1e18;
+    uint256 value = (strike * strike) / 1e18;
     uint256 basePerDollar = 1e18;
 
     uint256 minLP = value / basePerDollar;
@@ -36,13 +36,13 @@ contract PrecisionTest is TestHelper {
     assert(minLP < 1 ether);
   }
 
-  function testHighUpperBound() external {
-    upperBound = 1e27;
-    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound));
+  function testHighstrike() external {
+    strike = 1e27;
+    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, strike));
 
-    lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
+    lendgine.invariant((strike * strike) / 1e18, 0, 1 ether);
 
-    uint256 value = (upperBound * upperBound) / 1e18;
+    uint256 value = (strike * strike) / 1e18;
     uint256 basePerDollar = 1e21;
 
     uint256 minLP = value / basePerDollar;
@@ -51,13 +51,13 @@ contract PrecisionTest is TestHelper {
     assert(minLP < 1 ether);
   }
 
-  function testLowUpperBound() external {
-    upperBound = 1e9;
-    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound));
+  function testLowstrike() external {
+    strike = 1e9;
+    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, strike));
 
-    lendgine.invariant((upperBound * upperBound) / 1e18, 0, 1 ether);
+    lendgine.invariant((strike * strike) / 1e18, 0, 1 ether);
 
-    uint256 value = (upperBound * upperBound) / 1e18;
+    uint256 value = (strike * strike) / 1e18;
     uint256 basePerDollar = 1e27;
 
     uint256 minLP = value / basePerDollar;

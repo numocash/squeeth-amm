@@ -15,7 +15,7 @@ abstract contract TestHelper is Test, CallbackHelper {
   uint8 public token0Scale;
   uint8 public token1Scale;
 
-  uint256 public upperBound;
+  uint256 public strike;
 
   Factory public factory;
   Lendgine public lendgine;
@@ -36,7 +36,7 @@ abstract contract TestHelper is Test, CallbackHelper {
     token0Scale = 18;
     token1Scale = 18;
 
-    upperBound = 5 * 1e18;
+    strike = 5 * 1e18;
   }
 
   function _setUp() internal {
@@ -46,7 +46,7 @@ abstract contract TestHelper is Test, CallbackHelper {
     (token0, token1) = address(tokenA) < address(tokenB) ? (tokenA, tokenB) : (tokenB, tokenA);
 
     factory = new Factory();
-    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound));
+    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, strike));
   }
 
   function _mint(address from, address to, uint256 collateral) internal returns (uint256 shares) {

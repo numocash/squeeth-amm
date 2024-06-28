@@ -15,7 +15,7 @@ contract Factory is IFactory {
     address indexed token1,
     uint256 token0Exp,
     uint256 token1Exp,
-    uint256 indexed upperBound,
+    uint256 indexed strike,
     address lendgine
   );
 
@@ -49,7 +49,7 @@ contract Factory is IFactory {
     address token1;
     uint128 token0Exp;
     uint128 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
   }
 
   /// @inheritdoc IFactory
@@ -65,7 +65,7 @@ contract Factory is IFactory {
     address token1,
     uint8 token0Exp,
     uint8 token1Exp,
-    uint256 upperBound
+    uint256 strike
   )
     external
     override
@@ -73,17 +73,17 @@ contract Factory is IFactory {
   {
     if (token0 == token1) revert SameTokenError();
     if (token0 == address(0) || token1 == address(0)) revert ZeroAddressError();
-    if (getLendgine[token0][token1][token0Exp][token1Exp][upperBound] != address(0)) revert DeployedError();
+    if (getLendgine[token0][token1][token0Exp][token1Exp][strike] != address(0)) revert DeployedError();
     if (token0Exp > 18 || token0Exp < 6 || token1Exp > 18 || token1Exp < 6) revert ScaleError();
 
     parameters =
-      Parameters({ token0: token0, token1: token1, token0Exp: token0Exp, token1Exp: token1Exp, upperBound: upperBound });
+      Parameters({ token0: token0, token1: token1, token0Exp: token0Exp, token1Exp: token1Exp, strike: strike });
 
-    lendgine = address(new Lendgine{ salt: keccak256(abi.encode(token0, token1, token0Exp, token1Exp, upperBound)) }());
+    lendgine = address(new Lendgine{ salt: keccak256(abi.encode(token0, token1, token0Exp, token1Exp, strike)) }());
 
     delete parameters;
 
-    getLendgine[token0][token1][token0Exp][token1Exp][upperBound] = lendgine;
-    emit LendgineCreated(token0, token1, token0Exp, token1Exp, upperBound, lendgine);
+    getLendgine[token0][token1][token0Exp][token1Exp][strike] = lendgine;
+    emit LendgineCreated(token0, token1, token0Exp, token1Exp, strike, lendgine);
   }
 }

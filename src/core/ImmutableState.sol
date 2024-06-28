@@ -22,7 +22,7 @@ abstract contract ImmutableState is IImmutableState {
   uint256 public immutable override token1Scale;
 
   /// @inheritdoc IImmutableState
-  uint256 public immutable override upperBound;
+  uint256 public immutable override strike;
 
   constructor() {
     factory = msg.sender;
@@ -30,7 +30,7 @@ abstract contract ImmutableState is IImmutableState {
     uint128 _token0Exp;
     uint128 _token1Exp;
 
-    (token0, token1, _token0Exp, _token1Exp, upperBound) = Factory(msg.sender).parameters();
+    (token0, token1, _token0Exp, _token1Exp, strike) = Factory(msg.sender).parameters();
 
     token0Scale = 10 ** (18 - _token0Exp);
     token1Scale = 10 ** (18 - _token1Exp);

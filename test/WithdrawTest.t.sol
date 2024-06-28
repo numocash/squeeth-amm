@@ -148,7 +148,7 @@ contract WithdrawTest is TestHelper {
   function testNonStandardDecimals() external {
     token1Scale = 9;
 
-    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, upperBound));
+    lendgine = Lendgine(factory.createLendgine(address(token0), address(token1), token0Scale, token1Scale, strike));
 
     token0.mint(address(this), 1e18);
     token1.mint(address(this), 8 * 1e9);

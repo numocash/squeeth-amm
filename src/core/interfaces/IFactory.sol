@@ -13,7 +13,7 @@ interface IFactory {
     address token1,
     uint256 token0Exp,
     uint256 token1Exp,
-    uint256 upperBound
+    uint256 strike
   )
     external
     view
@@ -25,7 +25,7 @@ interface IFactory {
   function parameters()
     external
     view
-    returns (address token0, address token1, uint128 token0Exp, uint128 token1Exp, uint256 upperBound);
+    returns (address token0, address token1, uint128 token0Exp, uint128 token1Exp, uint256 strike);
 
   /// @notice Deploys a lendgine contract by transiently setting the parameters storage slots
   /// and clearing it after the lendgine has been deployed
@@ -34,7 +34,7 @@ interface IFactory {
     address token1,
     uint8 token0Exp,
     uint8 token1Exp,
-    uint256 upperBound
+    uint256 strike
   )
     external
     returns (address);

@@ -222,12 +222,12 @@ contract Lendgine is ERC20, JumpRate, Pair, ILendgine {
 
   /// @inheritdoc ILendgine
   function convertCollateralToLiquidity(uint256 collateral) public view override returns (uint256) {
-    return FullMath.mulDiv(collateral * token1Scale, 1e18, 2 * upperBound);
+    return FullMath.mulDiv(collateral * token1Scale, 1e18, 2 * strike);
   }
 
   /// @inheritdoc ILendgine
   function convertLiquidityToCollateral(uint256 liquidity) public view override returns (uint256) {
-    return FullMath.mulDiv(liquidity, 2 * upperBound, 1e18) / token1Scale;
+    return FullMath.mulDiv(liquidity, 2 * strike, 1e18) / token1Scale;
   }
 
   /*//////////////////////////////////////////////////////////////

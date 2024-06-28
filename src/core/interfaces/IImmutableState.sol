@@ -20,5 +20,5 @@ interface IImmutableState {
   function token1Scale() external view returns (uint256);
 
   /// @notice Maximum exchange rate (token0/token1)
-  function upperBound() external view returns (uint256);
+  function strike() external view returns (uint256);
 }

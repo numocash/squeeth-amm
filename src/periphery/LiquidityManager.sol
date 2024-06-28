@@ -94,7 +94,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     address token1;
     uint256 token0Exp;
     uint256 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
     uint256 amount0;
     uint256 amount1;
     address payer;
@@ -105,7 +105,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     PairMintCallbackData memory decoded = abi.decode(data, (PairMintCallbackData));
 
     address lendgine = LendgineAddress.computeAddress(
-      factory, decoded.token0, decoded.token1, decoded.token0Exp, decoded.token1Exp, decoded.upperBound
+      factory, decoded.token0, decoded.token1, decoded.token0Exp, decoded.token1Exp, decoded.strike
     );
     if (lendgine != msg.sender) revert ValidationError();
 
@@ -122,7 +122,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     address token1;
     uint256 token0Exp;
     uint256 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
     uint256 liquidity;
     uint256 amount0Min;
     uint256 amount1Min;
@@ -134,7 +134,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
   /// @notice Add liquidity to a liquidity position
   function addLiquidity(AddLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
     address lendgine = LendgineAddress.computeAddress(
-      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
+      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.strike
     );
 
     uint256 r0 = ILendgine(lendgine).reserve0();
@@ -163,7 +163,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
           token1: params.token1,
           token0Exp: params.token0Exp,
           token1Exp: params.token1Exp,
-          upperBound: params.upperBound,
+          strike: params.strike,
           amount0: amount0,
           amount1: amount1,
           payer: msg.sender
@@ -189,7 +189,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
     address token1;
     uint256 token0Exp;
     uint256 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
     uint256 size;
     uint256 amount0Min;
     uint256 amount1Min;
@@ -200,7 +200,7 @@ contract LiquidityManager is Multicall, Payment, SelfPermit, IPairMintCallback {
   /// @notice Removes from a liquidity position
   function removeLiquidity(RemoveLiquidityParams calldata params) external payable checkDeadline(params.deadline) {
     address lendgine = LendgineAddress.computeAddress(
-      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
+      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.strike
     );
 
     address recipient = params.recipient == address(0) ? address(this) : params.recipient;

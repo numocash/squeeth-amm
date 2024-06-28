@@ -76,7 +76,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     address token1;
     uint256 token0Exp;
     uint256 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
     uint256 collateralMax;
     SwapType swapType;
     bytes swapExtraData;
@@ -97,7 +97,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
 
     address lendgine = LendgineAddress.computeAddress(
-      factory, decoded.token0, decoded.token1, decoded.token0Exp, decoded.token1Exp, decoded.upperBound
+      factory, decoded.token0, decoded.token1, decoded.token0Exp, decoded.token1Exp, decoded.strike
     );
     if (lendgine != msg.sender) revert ValidationError();
 
@@ -128,7 +128,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     address token1;
     uint256 token0Exp;
     uint256 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
     uint256 amountIn;
     uint256 amountBorrow;
     uint256 sharesMin;
@@ -141,7 +141,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
   /// @notice Use token1 to completely mint an option position
   function mint(MintParams calldata params) external payable checkDeadline(params.deadline) returns (uint256 shares) {
     address lendgine = LendgineAddress.computeAddress(
-      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
+      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.strike
     );
 
     shares = ILendgine(lendgine).mint(
@@ -153,7 +153,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
           token1: params.token1,
           token0Exp: params.token0Exp,
           token1Exp: params.token1Exp,
-          upperBound: params.upperBound,
+          strike: params.strike,
           collateralMax: params.amountIn,
           swapType: params.swapType,
           swapExtraData: params.swapExtraData,
@@ -177,7 +177,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     address token1;
     uint256 token0Exp;
     uint256 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
     uint256 collateralMin;
     uint256 amount0Min;
     uint256 amount1Min;
@@ -191,7 +191,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     PairMintCallbackData memory decoded = abi.decode(data, (PairMintCallbackData));
 
     address lendgine = LendgineAddress.computeAddress(
-      factory, decoded.token0, decoded.token1, decoded.token0Exp, decoded.token1Exp, decoded.upperBound
+      factory, decoded.token0, decoded.token1, decoded.token0Exp, decoded.token1Exp, decoded.strike
     );
     if (lendgine != msg.sender) revert ValidationError();
 
@@ -242,7 +242,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
     address token1;
     uint256 token0Exp;
     uint256 token1Exp;
-    uint256 upperBound;
+    uint256 strike;
     uint256 shares;
     uint256 collateralMin;
     uint256 amount0Min;
@@ -256,7 +256,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
   /// @notice Take an option position and withdraw it fully into token1
   function burn(BurnParams calldata params) external payable checkDeadline(params.deadline) returns (uint256 amount) {
     address lendgine = LendgineAddress.computeAddress(
-      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.upperBound
+      factory, params.token0, params.token1, params.token0Exp, params.token1Exp, params.strike
     );
 
     address recipient = params.recipient == address(0) ? address(this) : params.recipient;
@@ -271,7 +271,7 @@ contract LendgineRouter is Multicall, Payment, SelfPermit, SwapHelper, IMintCall
           token1: params.token1,
           token0Exp: params.token0Exp,
           token1Exp: params.token1Exp,
-          upperBound: params.upperBound,
+          strike: params.strike,
           collateralMin: params.collateralMin,
           amount0Min: params.amount0Min,
           amount1Min: params.amount1Min,
