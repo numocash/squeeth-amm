@@ -2,7 +2,15 @@
 
 ![banner](images/Banner.png)
 
-Smart contracts suite of PowerMaker2, an automated market maker implementaion of the capped power-4 invariant for replicating power perpetuals raised to the fourth power on the EVM.
+Smart contracts suite of PowerMaker2, a replicating market maker that implements an options strategy to square returns on any token.
+
+### Access squared leverage on any token.
+
+## Installation
+
+```bash
+forge install numoen/pmmp
+```
 
 ## Local development
 
