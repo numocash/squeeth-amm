@@ -1,8 +1,8 @@
-# ⚡ Numo
+# ⚡ Numo-0
 
 ### Access squared leverage on any token.
 
-Smart contracts suite of Numo, an automated market maker that replicates that payoff of a power perpetual on the EVM. 
+Smart contracts suite of Numo-0, an automated market maker that replicates "Squeeth" on the EVM -- an option-like derivative that squares returns. 
 
 ## Installation
 
